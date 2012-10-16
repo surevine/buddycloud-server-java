@@ -6,6 +6,7 @@ import org.buddycloud.channelserver.connection.iq.IQRequest;
 import org.buddycloud.channelserver.connection.iq.IQRequestProcessor;
 import org.buddycloud.channelserver.federation.AsyncCall;
 import org.buddycloud.channelserver.federation.ServiceDiscoveryRegistry;
+import org.buddycloud.channelserver.packetprocessor.iq.namespace.pubsub.Buddycloud;
 import org.buddycloud.channelserver.packetprocessor.iq.namespace.pubsub.JabberPubsub;
 import org.buddycloud.channelserver.pubsub.model.NodeAffiliation;
 import org.dom4j.Element;
@@ -58,10 +59,17 @@ public class GetUserAffiliationsRequest implements AsyncCall<Collection<NodeAffi
 			@Override
 			public IQ getRequest() {
 				IQ iq = new IQ(IQ.Type.get);
-				iq.setTo(remoteServer);
-				Element el = iq.setChildElement("pubsub", JabberPubsub.NAMESPACE_URI);
 				
-				el.addElement("affiliations");
+				iq.setTo(remoteServer);
+				
+				Element pubsub = iq.setChildElement("pubsub", JabberPubsub.NAMESPACE_URI);
+				
+				Element affiliations = pubsub.addElement("affiliations");
+			    affiliations.addAttribute("jid", user.toBareJID());
+				Element actor = pubsub.addElement("actor");
+				actor.addAttribute("jid", user.toBareJID());
+				actor.addNamespace("", Buddycloud.NAMESPACE);				
+				
 			}
 		};
 	}

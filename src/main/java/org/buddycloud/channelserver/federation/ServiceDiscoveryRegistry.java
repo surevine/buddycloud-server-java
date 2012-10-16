@@ -9,6 +9,7 @@ import org.buddycloud.channelserver.connection.iq.IQRequestProcessor;
 import org.buddycloud.channelserver.federation.requests.disco.DiscoInfoIQRequest;
 import org.buddycloud.channelserver.federation.requests.disco.DiscoItemsIQRequest;
 import org.buddycloud.channelserver.federation.requests.disco.DiscoInfoIQRequest.Identity;
+import org.buddycloud.channelserver.node.NodeRef;
 import org.xmpp.packet.JID;
 
 public class ServiceDiscoveryRegistry {
@@ -24,6 +25,9 @@ public class ServiceDiscoveryRegistry {
 	public ServiceDiscoveryRegistry(final IQRequestProcessor iqRequestProcessor) {
 		this.iqRequestProcessor = iqRequestProcessor;
 		channelServers = new HashMap<String,JID>();
+	}
+	
+	public void discoverChannelServerJIDFromNodeId(final String nodeID, final JIDDiscoveryHandler handler) {
 	}
 	
 	/**
