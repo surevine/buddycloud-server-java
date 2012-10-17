@@ -110,6 +110,7 @@ public class FederatedChannelManager implements ChannelManager {
 			@Override
 			public void onError(PacketError packetError) {
 				error.set(0, packetError);
+				thread.interrupt();
 			}
 		}, user);
 		
@@ -123,7 +124,7 @@ public class FederatedChannelManager implements ChannelManager {
 			throw new NodeStoreException(error.get(0).getText());
 		}
 		
-		throw new NodeStoreException();
+		throw new NodeStoreException("Timed out");
 	}
 
 	@Override

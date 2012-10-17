@@ -14,36 +14,10 @@ import org.xmpp.packet.JID;
 import org.xmpp.packet.Packet;
 import org.xmpp.packet.PacketError;
 
-public class GetUserAffiliationsProcessor {
+public class GetUserAffiliationsProcessor implements IQRequest {
 	public interface Handler {
 		public void onSuccess(Collection<NodeAffiliation> affiliations);
 		public void onError(PacketError packetError);
-	}
-	
-	public class Request implements IQRequest {
-
-		public IQ getRequest(JID jid) {
-
-			return null;
-		}
-
-		@Override
-		public void onResult(IQ response) {
-			
-		}
-
-		@Override
-		public void onError(IQ error) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public IQ getRequest() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-		
 	}
 	
 	private JID user;
@@ -52,6 +26,7 @@ public class GetUserAffiliationsProcessor {
 		this.user = user;
 	}
 
+	@Override
 	public IQ getRequest() {
 		Packet packet = new IQ();
 
@@ -66,11 +41,13 @@ public class GetUserAffiliationsProcessor {
 		return (IQ) packet;
 	}
 
+	@Override
 	public void onResult(IQ response) {
 		// TODO Auto-generated method stub
 
 	}
 
+	@Override
 	public void onError(IQ error) {
 		// TODO Auto-generated method stub
 
