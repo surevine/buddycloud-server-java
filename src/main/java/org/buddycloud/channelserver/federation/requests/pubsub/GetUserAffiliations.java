@@ -4,7 +4,8 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.buddycloud.channelserver.connection.XMPPConnection;
-import org.buddycloud.channelserver.federation.AbstractProcessor;
+import org.buddycloud.channelserver.db.exception.NodeStoreException;
+import org.buddycloud.channelserver.federation.ChannelServerRequestAbstract;
 import org.buddycloud.channelserver.federation.ServiceDiscoveryRegistry;
 import org.buddycloud.channelserver.packetprocessor.iq.namespace.pubsub.Buddycloud;
 import org.buddycloud.channelserver.packetprocessor.iq.namespace.pubsub.JabberPubsub;
@@ -13,12 +14,12 @@ import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.JID;
 
-public class GetUserAffiliationsRequest extends AbstractProcessor<Collection<NodeAffiliation>> {
+public class GetUserAffiliations extends ChannelServerRequestAbstract<Collection<NodeAffiliation>> {
 	private final XMPPConnection connection;
 	
 	private final JID user;
 
-	public GetUserAffiliationsRequest(final XMPPConnection connection, final ServiceDiscoveryRegistry discovery, final JID user) {
+	public GetUserAffiliations(final XMPPConnection connection, final ServiceDiscoveryRegistry discovery, final JID user) {
 		super(discovery);
 		this.user = user;
 		this.connection = connection;
@@ -52,8 +53,7 @@ public class GetUserAffiliationsRequest extends AbstractProcessor<Collection<Nod
 			
 			@Override
 			public void onError(IQ iq) {
-				// TODO Auto-generated method stub
-				
+				handler.onError(new NodeStoreException(iq.getError().toString()));
 			}
 		});
 	}

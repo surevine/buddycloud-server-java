@@ -9,6 +9,10 @@ import java.util.concurrent.TimeoutException;
 import org.buddycloud.channelserver.connection.XMPPConnection;
 import org.buddycloud.channelserver.db.CloseableIterator;
 import org.buddycloud.channelserver.db.exception.NodeStoreException;
+import org.buddycloud.channelserver.federation.AsyncCall.ResultHandler;
+import org.buddycloud.channelserver.federation.ServiceDiscoveryRegistry;
+import org.buddycloud.channelserver.federation.requests.pubsub.GetNodeItems;
+import org.buddycloud.channelserver.federation.requests.pubsub.GetUserAffiliations;
 import org.buddycloud.channelserver.federation.requests.pubsub.GetUserAffiliationsProcessor;
 import org.buddycloud.channelserver.pubsub.affiliation.Affiliation;
 import org.buddycloud.channelserver.pubsub.affiliation.Affiliations;
@@ -23,10 +27,12 @@ public class FederatedChannelManager implements ChannelManager {
 
 	private final AsyncChannelManager delegate;
 	private final XMPPConnection xmppConnection;
+	private final ServiceDiscoveryRegistry discoveryRegistry;
 	
-	public FederatedChannelManager(AsyncChannelManager delgate, final XMPPConnection xmppConnection) {
+	public FederatedChannelManager(final AsyncChannelManager delgate, final XMPPConnection xmppConnection, final ServiceDiscoveryRegistry discoveryRegistry) {
 		this.delegate = delgate;
 		this.xmppConnection = xmppConnection;
+		this.discoveryRegistry = discoveryRegistry;
 	}
 	
 	@Override
@@ -94,25 +100,27 @@ public class FederatedChannelManager implements ChannelManager {
 	@Override
 	public Collection<NodeAffiliation> getUserAffiliations(JID user)
 			throws NodeStoreException {
+		final ArrayList<Collection<NodeAffiliation>> result = new ArrayList<Collection<NodeAffiliation>>(1);
+		final ArrayList<Throwable> error = new ArrayList<Throwable>(1);
+		
+		GetUserAffiliations gua = new GetUserAffiliations(xmppConnection, discoveryRegistry, user);
+		
 		final Thread thread = Thread.currentThread();
 		
-		final ArrayList<Collection<NodeAffiliation>> result = new ArrayList<Collection<NodeAffiliation>>(1);
-		final ArrayList<PacketError> error = new ArrayList<PacketError>(1);
-		
-		delegate.getUserAffiliations(new GetUserAffiliationsProcessor.Handler() {
+		gua.call(new ResultHandler<Collection<NodeAffiliation>>() {
 			
 			@Override
 			public void onSuccess(Collection<NodeAffiliation> affiliations) {
 				result.set(0, affiliations);
 				thread.interrupt();
 			}
-
+			
 			@Override
-			public void onError(PacketError packetError) {
-				error.set(0, packetError);
+			public void onError(Throwable t) {
+				error.set(0, t);
 				thread.interrupt();
 			}
-		}, user);
+		});
 		
 		try {
 			Thread.sleep(60000);
@@ -121,7 +129,11 @@ public class FederatedChannelManager implements ChannelManager {
 				return result.get(0);
 			}
 			
-			throw new NodeStoreException(error.get(0).getText());
+			if(error.get(0) instanceof NodeStoreException) {
+				throw (NodeStoreException) error.get(0);
+			} else {
+				throw new NodeStoreException("Unexpected error caught", error.get(0));
+			}
 		}
 		
 		throw new NodeStoreException("Timed out");
@@ -165,8 +177,43 @@ public class FederatedChannelManager implements ChannelManager {
 	@Override
 	public CloseableIterator<NodeItem> getNodeItems(String nodeId)
 			throws NodeStoreException {
-		// TODO Auto-generated method stub
-		return null;
+		final ArrayList<CloseableIterator<NodeItem>> result = new ArrayList<CloseableIterator<NodeItem>>(1);
+		final ArrayList<Throwable> error = new ArrayList<Throwable>(1);
+		
+		GetNodeItems gua = new GetNodeItems(discoveryRegistry, xmppConnection, nodeId);
+		
+		final Thread thread = Thread.currentThread();
+		
+		gua.call(new ResultHandler<CloseableIterator<NodeItem>>() {
+			
+			@Override
+			public void onSuccess(CloseableIterator<NodeItem> items) {
+				result.set(0, items);
+				thread.interrupt();
+			}
+			
+			@Override
+			public void onError(Throwable t) {
+				error.set(0, t);
+				thread.interrupt();
+			}
+		});
+		
+		try {
+			Thread.sleep(60000);
+		} catch(InterruptedException e) {
+			if(!result.isEmpty()) {
+				return result.get(0);
+			}
+			
+			if(error.get(0) instanceof NodeStoreException) {
+				throw (NodeStoreException) error.get(0);
+			} else {
+				throw new NodeStoreException("Unexpected error caught", error.get(0));
+			}
+		}
+		
+		throw new NodeStoreException("Timed out");
 	}
 
 	@Override

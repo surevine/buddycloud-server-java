@@ -2,10 +2,10 @@ package org.buddycloud.channelserver.federation;
 
 import org.xmpp.packet.JID;
 
-public abstract class AbstractProcessor<T> implements AsyncCall<T> {
+public abstract class ChannelServerRequestAbstract<T> implements AsyncCall<T> {
 	private final ServiceDiscoveryRegistry discovery;
 
-	public AbstractProcessor(final ServiceDiscoveryRegistry discovery) {
+	public ChannelServerRequestAbstract(final ServiceDiscoveryRegistry discovery) {
 		this.discovery = discovery;
 	}
 
