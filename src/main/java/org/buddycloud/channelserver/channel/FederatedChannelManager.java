@@ -19,6 +19,7 @@ import org.buddycloud.channelserver.pubsub.affiliation.Affiliations;
 import org.buddycloud.channelserver.pubsub.model.NodeAffiliation;
 import org.buddycloud.channelserver.pubsub.model.NodeItem;
 import org.buddycloud.channelserver.pubsub.model.NodeSubscription;
+import org.buddycloud.channelserver.utils.request.Parameters;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.JID;
 import org.xmpp.packet.PacketError;
@@ -28,13 +29,16 @@ public class FederatedChannelManager implements ChannelManager {
 	private final AsyncChannelManager delegate;
 	private final XMPPConnection xmppConnection;
 	private final ServiceDiscoveryRegistry discoveryRegistry;
-	
-	public FederatedChannelManager(final AsyncChannelManager delgate, final XMPPConnection xmppConnection, final ServiceDiscoveryRegistry discoveryRegistry) {
+	private Parameters requestParameters;
+
+	public FederatedChannelManager(final AsyncChannelManager delgate,
+			final XMPPConnection xmppConnection,
+			final ServiceDiscoveryRegistry discoveryRegistry) {
 		this.delegate = delgate;
 		this.xmppConnection = xmppConnection;
 		this.discoveryRegistry = discoveryRegistry;
 	}
-	
+
 	@Override
 	public void createNode(JID owner, String nodeId,
 			Map<String, String> nodeConf) throws NodeStoreException {
@@ -100,42 +104,45 @@ public class FederatedChannelManager implements ChannelManager {
 	@Override
 	public Collection<NodeAffiliation> getUserAffiliations(JID user)
 			throws NodeStoreException {
-		final ArrayList<Collection<NodeAffiliation>> result = new ArrayList<Collection<NodeAffiliation>>(1);
+		final ArrayList<Collection<NodeAffiliation>> result = new ArrayList<Collection<NodeAffiliation>>(
+				1);
 		final ArrayList<Throwable> error = new ArrayList<Throwable>(1);
-		
-		GetUserAffiliations gua = new GetUserAffiliations(xmppConnection, discoveryRegistry, user);
-		
+
+		GetUserAffiliations gua = new GetUserAffiliations(xmppConnection,
+				discoveryRegistry, user);
+
 		final Thread thread = Thread.currentThread();
-		
+
 		gua.call(new ResultHandler<Collection<NodeAffiliation>>() {
-			
+
 			@Override
 			public void onSuccess(Collection<NodeAffiliation> affiliations) {
 				result.set(0, affiliations);
 				thread.interrupt();
 			}
-			
+
 			@Override
 			public void onError(Throwable t) {
 				error.set(0, t);
 				thread.interrupt();
 			}
 		});
-		
+
 		try {
 			Thread.sleep(60000);
-		} catch(InterruptedException e) {
-			if(!result.isEmpty()) {
+		} catch (InterruptedException e) {
+			if (!result.isEmpty()) {
 				return result.get(0);
 			}
-			
-			if(error.get(0) instanceof NodeStoreException) {
+
+			if (error.get(0) instanceof NodeStoreException) {
 				throw (NodeStoreException) error.get(0);
 			} else {
-				throw new NodeStoreException("Unexpected error caught", error.get(0));
+				throw new NodeStoreException("Unexpected error caught",
+						error.get(0));
 			}
 		}
-		
+
 		throw new NodeStoreException("Timed out");
 	}
 
@@ -177,42 +184,45 @@ public class FederatedChannelManager implements ChannelManager {
 	@Override
 	public CloseableIterator<NodeItem> getNodeItems(String nodeId)
 			throws NodeStoreException {
-		final ArrayList<CloseableIterator<NodeItem>> result = new ArrayList<CloseableIterator<NodeItem>>(1);
+		final ArrayList<CloseableIterator<NodeItem>> result = new ArrayList<CloseableIterator<NodeItem>>(
+				1);
 		final ArrayList<Throwable> error = new ArrayList<Throwable>(1);
-		
-		GetNodeItems gua = new GetNodeItems(discoveryRegistry, xmppConnection, nodeId);
-		
+
+		GetNodeItems gua = new GetNodeItems(discoveryRegistry, xmppConnection,
+				nodeId, requestParameters);
+
 		final Thread thread = Thread.currentThread();
-		
+
 		gua.call(new ResultHandler<CloseableIterator<NodeItem>>() {
-			
+
 			@Override
 			public void onSuccess(CloseableIterator<NodeItem> items) {
 				result.set(0, items);
 				thread.interrupt();
 			}
-			
+
 			@Override
 			public void onError(Throwable t) {
 				error.set(0, t);
 				thread.interrupt();
 			}
 		});
-		
+
 		try {
 			Thread.sleep(60000);
-		} catch(InterruptedException e) {
-			if(!result.isEmpty()) {
+		} catch (InterruptedException e) {
+			if (!result.isEmpty()) {
 				return result.get(0);
 			}
-			
-			if(error.get(0) instanceof NodeStoreException) {
+
+			if (error.get(0) instanceof NodeStoreException) {
 				throw (NodeStoreException) error.get(0);
 			} else {
-				throw new NodeStoreException("Unexpected error caught", error.get(0));
+				throw new NodeStoreException("Unexpected error caught",
+						error.get(0));
 			}
 		}
-		
+
 		throw new NodeStoreException("Timed out");
 	}
 
@@ -278,4 +288,8 @@ public class FederatedChannelManager implements ChannelManager {
 		return false;
 	}
 
+	@Override
+	public void setRequestParameters(Parameters requestParameters) {
+		this.requestParameters = requestParameters;
+	}
 }

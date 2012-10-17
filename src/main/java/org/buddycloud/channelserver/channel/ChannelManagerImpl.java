@@ -13,6 +13,7 @@ import org.buddycloud.channelserver.pubsub.affiliation.Affiliations;
 import org.buddycloud.channelserver.pubsub.model.NodeAffiliation;
 import org.buddycloud.channelserver.pubsub.model.NodeItem;
 import org.buddycloud.channelserver.pubsub.model.NodeSubscription;
+import org.buddycloud.channelserver.utils.request.Parameters;
 import org.xmpp.packet.JID;
 
 /**
@@ -23,6 +24,7 @@ public class ChannelManagerImpl implements ChannelManager {
 
 	private final NodeStore nodeStore;
 	private final Properties configuration;
+	private Parameters requestParameters;
 
 	private static final Logger LOGGER = Logger
 			.getLogger(ChannelManagerImpl.class);
@@ -224,5 +226,10 @@ public class ChannelManagerImpl implements ChannelManager {
 	@Override
 	public void close() throws NodeStoreException {
 		nodeStore.close();
+	}
+
+	@Override
+	public void setRequestParameters(Parameters requestParameters) {
+		this.requestParameters = requestParameters;		
 	}
 }

@@ -69,7 +69,7 @@ public class ItemsGetTest extends IQTestHandler {
 
 	@Test
 	public void testMissingNodeAttributeReturnsErrorStanza() throws Exception {
-		itemsGet.process(element, jid, request, null);
+		itemsGet.process(element, null, request, null);
 		Packet response = queue.poll(100, TimeUnit.MILLISECONDS);
 
 		PacketError error = response.getError();
@@ -87,7 +87,7 @@ public class ItemsGetTest extends IQTestHandler {
 		element.addAttribute("node", node);
 		itemsGet.setChannelManager(channelManagerMock);
 
-		itemsGet.process(element, jid, request, null);
+		itemsGet.process(element, null, request, null);
 		Packet response = queue.poll(100, TimeUnit.MILLISECONDS);
 
 		PacketError error = response.getError();
@@ -105,7 +105,7 @@ public class ItemsGetTest extends IQTestHandler {
 				NodeStoreException.class);
 		itemsGet.setChannelManager(channelManagerMock);
 
-		itemsGet.process(element, jid, request, null);
+		itemsGet.process(element, null, request, null);
 		Packet response = queue.poll(100, TimeUnit.MILLISECONDS);
 
 		PacketError error = response.getError();
@@ -144,7 +144,7 @@ public class ItemsGetTest extends IQTestHandler {
 		Mockito.when(nodeViewAclMock.getReason()).thenReturn(refusalReason);
 		itemsGet.setNodeViewAcl(nodeViewAclMock);
 
-		itemsGet.process(element, jid, request, null);
+		itemsGet.process(element, null, request, null);
 		Packet response = queue.poll(100, TimeUnit.MILLISECONDS);
 
 		PacketError error = response.getError();
@@ -194,7 +194,7 @@ public class ItemsGetTest extends IQTestHandler {
 						Mockito.any(AccessModels.class));
 		itemsGet.setNodeViewAcl(nodeViewAclMock);
 
-		itemsGet.process(element, jid, request, null);
+		itemsGet.process(element, null, request, null);
 		Packet response = queue.poll(100, TimeUnit.MILLISECONDS);
 		Element element = response.getElement();
 
@@ -243,7 +243,7 @@ public class ItemsGetTest extends IQTestHandler {
 						Mockito.any(AccessModels.class));
 		itemsGet.setNodeViewAcl(nodeViewAclMock);
 
-		itemsGet.process(element, jid, request, null);
+		itemsGet.process(element, null, request, null);
 		Packet response = queue.poll(100, TimeUnit.MILLISECONDS);
 		Element element = response.getElement();
 
@@ -303,7 +303,7 @@ public class ItemsGetTest extends IQTestHandler {
 						Mockito.any(AccessModels.class));
 		itemsGet.setNodeViewAcl(nodeViewAclMock);
 
-		itemsGet.process(element, jid, request, null);
+		itemsGet.process(element, null, request, null);
 		Packet response = queue.poll(100, TimeUnit.MILLISECONDS);
 		Element element = response.getElement();
 
@@ -361,7 +361,7 @@ public class ItemsGetTest extends IQTestHandler {
 						Mockito.any(AccessModels.class));
 		itemsGet.setNodeViewAcl(nodeViewAclMock);
 
-		itemsGet.process(element, jid, request, null);
+		itemsGet.process(element, null, request, null);
 		Packet response = queue.poll(100, TimeUnit.MILLISECONDS);
 		Element element = response.getElement();
 
@@ -434,7 +434,7 @@ public class ItemsGetTest extends IQTestHandler {
 						Mockito.any(AccessModels.class));
 		itemsGet.setNodeViewAcl(nodeViewAclMock);
 
-		itemsGet.process(element, jid, request, null);
+		itemsGet.process(element, null, request, null);
 		Packet response = queue.poll(100, TimeUnit.MILLISECONDS);
 		Element element = response.getElement();
 
@@ -514,7 +514,7 @@ public class ItemsGetTest extends IQTestHandler {
 						Mockito.any(AccessModels.class));
 		itemsGet.setNodeViewAcl(nodeViewAclMock);
 
-		itemsGet.process(element, jid, request, null);
+		itemsGet.process(element, null, request, null);
 
 		Packet response = queue.poll(100, TimeUnit.MILLISECONDS);
 		Element element = response.getElement();
@@ -552,5 +552,69 @@ public class ItemsGetTest extends IQTestHandler {
 						.attributeValue(
 								new QName("subscription", new Namespace("ns2",
 										JabberPubsub.NAMESPACE_URI))));
+	}
+	
+	@Test
+	public void testPassingActorElementResultsInResponseIncludingActorElement() throws Exception {
+		AccessModels accessModel = AccessModels.authorize;
+
+		element.addAttribute("node", node);
+
+		ChannelManager channelManagerMock = Mockito.mock(Mock.class);
+
+		NodeSubscriptionImpl subscription = Mockito
+				.mock(NodeSubscriptionImpl.class);
+		NodeAffiliationImpl affiliation = Mockito
+				.mock(NodeAffiliationImpl.class);
+		Mockito.when(affiliation.getAffiliation()).thenReturn(
+				Affiliations.member);
+		Mockito.when(subscription.getSubscription()).thenReturn(
+				Subscriptions.subscribed);
+		Mockito.when(channelManagerMock.getUserSubscription(node, jid))
+				.thenReturn(subscription);
+		Mockito.when(channelManagerMock.getUserAffiliation(node, jid))
+				.thenReturn(affiliation);
+
+		NodeItem item = Mockito.mock(NodeItem.class);
+		Mockito.when(item.getId()).thenReturn("id");
+		Mockito.when(item.getNodeId()).thenReturn(node);
+		Mockito.when(item.getPayload()).thenReturn("<entry>entry text</entry>");
+		NodeItem[] items = new NodeItem[2];
+		items[0] = item;
+		items[1] = item;
+		CloseableIterator<NodeItem> itemList = new ClosableIteratorImpl<NodeItem>(
+				Arrays.asList(items).iterator());
+		Mockito.doReturn(itemList)
+				.when(channelManagerMock)
+				.getNodeItems(Mockito.anyString(), Mockito.anyString(),
+						Mockito.anyInt());
+
+		Mockito.when(channelManagerMock.nodeExists(node)).thenReturn(true);
+
+		itemsGet.setChannelManager(channelManagerMock);
+
+		NodeViewAcl nodeViewAclMock = Mockito.mock(NodeViewAcl.class);
+		Mockito.doReturn(true)
+				.when(nodeViewAclMock)
+				.canViewNode(Mockito.anyString(),
+						Mockito.any(Affiliations.class),
+						Mockito.any(Subscriptions.class),
+						Mockito.any(AccessModels.class));
+		itemsGet.setNodeViewAcl(nodeViewAclMock);
+
+		itemsGet.process(element, new JID("romeo@shakespare.lit"), request, null);
+		Packet response = queue.poll(100, TimeUnit.MILLISECONDS);
+		Element element = response.getElement();
+
+		assertEquals(IQ.Type.result.toString(), element.attributeValue("type"));
+		assertEquals(node, element.element("pubsub").element("items")
+				.attributeValue("node"));
+
+		assertEquals(2, element.element("pubsub").element("items").nodeCount());
+		assertEquals("id",
+				element.element("pubsub").element("items").element("item")
+						.attributeValue("id"));
+		assertEquals("entry text", element.element("pubsub").element("items")
+				.element("item").elementText("entry"));
 	}
 }
