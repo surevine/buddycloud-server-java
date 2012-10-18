@@ -50,7 +50,7 @@ public class GetNodeItems extends
 		Element items = pubsub.addElement("items");
 		items.addAttribute("node", nodeId);
 		Element actor = pubsub.addElement("actor");
-		actor.addAttribute("jid", user.toBareJID());
+		actor.addAttribute("jid", requestParameters.getRequester().toBareJID());
 
 		sendIq(iq, handler);
 	}

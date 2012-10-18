@@ -9,7 +9,6 @@ import org.buddycloud.channelserver.db.exception.NodeStoreException;
 import org.buddycloud.channelserver.federation.AsyncCall.ResultHandler;
 import org.buddycloud.channelserver.federation.ServiceDiscoveryRegistry;
 import org.buddycloud.channelserver.federation.requests.pubsub.GetNodeItems;
-import org.buddycloud.channelserver.federation.requests.pubsub.GetUserAffiliations;
 import org.buddycloud.channelserver.pubsub.affiliation.Affiliations;
 import org.buddycloud.channelserver.pubsub.model.NodeAffiliation;
 import org.buddycloud.channelserver.pubsub.model.NodeItem;
@@ -99,45 +98,8 @@ public class FederatedChannelManager implements ChannelManager {
 	@Override
 	public Collection<NodeAffiliation> getUserAffiliations(JID user)
 			throws NodeStoreException {
-		final ObjectHolder<Collection<NodeAffiliation>> result = new ObjectHolder<Collection<NodeAffiliation>>();
-		final ObjectHolder<Throwable> error = new ObjectHolder<Throwable>();
-
-		GetUserAffiliations gua = new GetUserAffiliations(xmppConnection,
-				discoveryRegistry, user);
-
-		final Thread thread = Thread.currentThread();
-
-		gua.call(new ResultHandler<Collection<NodeAffiliation>>() {
-
-			@Override
-			public void onSuccess(Collection<NodeAffiliation> affiliations) {
-				result.set(affiliations);
-				thread.interrupt();
-			}
-
-			@Override
-			public void onError(Throwable t) {
-				error.set(t);
-				thread.interrupt();
-			}
-		});
-
-		try {
-			Thread.sleep(60000);
-		} catch (InterruptedException e) {
-			if (result.get() != null) {
-				return result.get();
-			}
-
-			if (error.get() instanceof NodeStoreException) {
-				throw (NodeStoreException) error.get();
-			} else {
-				throw new NodeStoreException("Unexpected error caught",
-						error.get());
-			}
-		}
-
-		throw new NodeStoreException("Timed out");
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override

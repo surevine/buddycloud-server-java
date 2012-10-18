@@ -38,8 +38,6 @@ public abstract class ChannelServerRequestAbstract<T> implements AsyncCall<T> {
 				});
 	}
 	
-	public void Resu
-
 	protected void sendIq(IQ iq, final ResultHandler<T> handler) {
 
 		iq.setFrom(requestParameters.getChannelsDomain());
