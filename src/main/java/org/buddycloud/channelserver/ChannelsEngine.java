@@ -8,9 +8,11 @@ import org.apache.log4j.Logger;
 import org.buddycloud.channelserver.channel.ChannelManagerFactory;
 import org.buddycloud.channelserver.channel.ChannelManagerFactoryImpl;
 import org.buddycloud.channelserver.connection.ComponentXMPPConnection;
+import org.buddycloud.channelserver.connection.iq.IQRequestProcessor;
 import org.buddycloud.channelserver.db.DefaultNodeStoreFactoryImpl;
 import org.buddycloud.channelserver.db.NodeStoreFactory;
 import org.buddycloud.channelserver.db.exception.NodeStoreException;
+import org.buddycloud.channelserver.federation.ServiceDiscoveryRegistry;
 import org.buddycloud.channelserver.queue.InQueueConsumer;
 import org.buddycloud.channelserver.queue.OutQueueConsumer;
 import org.xmpp.component.Component;
@@ -62,7 +64,11 @@ public class ChannelsEngine implements Component {
 		} catch (NodeStoreException e) {
 			throw new ComponentException(e);
 		}
-		ChannelManagerFactory channelManagerFactory = new ChannelManagerFactoryImpl(conf, nodeStoreFactory);
+		IQRequestProcessor processor = new IQRequestProcessor(xmppConnection);
+		ServiceDiscoveryRegistry registry = new ServiceDiscoveryRegistry(processor);
+		ChannelManagerFactory channelManagerFactory = new ChannelManagerFactoryImpl(
+				conf, nodeStoreFactory, xmppConnection, registry 
+		);
 		
 		OutQueueConsumer outQueueConsumer = new OutQueueConsumer(this, outQueue);
 		outQueueConsumer.start();

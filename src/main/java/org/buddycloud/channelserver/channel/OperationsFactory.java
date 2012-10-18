@@ -8,16 +8,16 @@ import org.buddycloud.channelserver.utils.request.Parameters;
 public class OperationsFactory {
 	private final ServiceDiscoveryRegistry discovery;
 	private final XMPPConnection connection;
-	private final Parameters requestParameters;
+	private final ChannelManager channelManager;
 	
 	public OperationsFactory(ServiceDiscoveryRegistry discovery,
-			XMPPConnection connection, Parameters requestParameters) {
+			XMPPConnection connection, ChannelManager channelManager) {
 		this.discovery = discovery;
 		this.connection = connection;
-		this.requestParameters = requestParameters;
+		this.channelManager = channelManager;
 	}
 
 	public GetNodeItems getNodeItems(final String nodeId) {
-		return new GetNodeItems(discovery, connection, nodeId, requestParameters);
+		return new GetNodeItems(discovery, connection, nodeId, channelManager);
 	}
 }
