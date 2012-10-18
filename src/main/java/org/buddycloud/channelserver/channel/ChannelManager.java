@@ -2,6 +2,7 @@ package org.buddycloud.channelserver.channel;
 
 import org.buddycloud.channelserver.db.NodeStore;
 import org.buddycloud.channelserver.db.exception.NodeStoreException;
+import org.buddycloud.channelserver.utils.request.Parameters;
 import org.xmpp.packet.JID;
 
 public interface ChannelManager extends NodeStore {
@@ -28,4 +29,11 @@ public interface ChannelManager extends NodeStore {
 	 * @throws NodeStoreException 
 	 */
 	boolean isLocalJID(JID jid) throws NodeStoreException;
+
+	/**
+	 * Set request parameters
+	 * 
+	 * @param requestParameters
+	 */
+	void setRequestParameters(Parameters requestParameters);
 }

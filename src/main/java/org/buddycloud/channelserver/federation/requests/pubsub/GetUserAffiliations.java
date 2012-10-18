@@ -15,14 +15,12 @@ import org.xmpp.packet.IQ;
 import org.xmpp.packet.JID;
 
 public class GetUserAffiliations extends ChannelServerRequestAbstract<Collection<NodeAffiliation>> {
-	private final XMPPConnection connection;
-	
+
 	private final JID user;
 
 	public GetUserAffiliations(final XMPPConnection connection, final ServiceDiscoveryRegistry discovery, final JID user) {
-		super(discovery);
+		super(discovery, connection);
 		this.user = user;
-		this.connection = connection;
 	}
 	
 	@Override
@@ -44,22 +42,17 @@ public class GetUserAffiliations extends ChannelServerRequestAbstract<Collection
 		actor.addAttribute("jid", user.toBareJID());
 		actor.addNamespace("", Buddycloud.NAMESPACE);				
 
-		connection.sendIQ(iq, new XMPPConnection.IQHandler() {
-			
-			@Override
-			public void onResult(IQ iq) {
-				handler.onSuccess(fromIQ(iq));
-			}
-			
-			@Override
-			public void onError(IQ iq) {
-				handler.onError(new NodeStoreException(iq.getError().toString()));
-			}
-		});
+		sendIq(iq, handler);
 	}
 	
 	private Collection<NodeAffiliation> fromIQ(final IQ iq) {
 		// Do stuff
 		return Collections.emptyList();
+	}
+
+	@Override
+	protected Collection<NodeAffiliation> fromIq(IQ iq) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
