@@ -109,7 +109,7 @@ public class FederatedChannelManager implements ChannelManager {
 		final ArrayList<Throwable> error = new ArrayList<Throwable>(1);
 
 		GetUserAffiliations gua = new GetUserAffiliations(xmppConnection,
-				discoveryRegistry, user);
+				discoveryRegistry, user, requestParameters);
 
 		final Thread thread = Thread.currentThread();
 
@@ -189,7 +189,7 @@ public class FederatedChannelManager implements ChannelManager {
 		final ArrayList<Throwable> error = new ArrayList<Throwable>(1);
 
 		GetNodeItems gua = new GetNodeItems(discoveryRegistry, xmppConnection,
-				nodeId, requestParameters);
+				nodeId, this);
 
 		final Thread thread = Thread.currentThread();
 
@@ -291,5 +291,9 @@ public class FederatedChannelManager implements ChannelManager {
 	@Override
 	public void setRequestParameters(Parameters requestParameters) {
 		this.requestParameters = requestParameters;
+	}
+	
+	public Parameters getRequestParameters() {
+		return requestParameters;
 	}
 }

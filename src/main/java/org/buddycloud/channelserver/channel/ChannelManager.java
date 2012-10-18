@@ -36,4 +36,11 @@ public interface ChannelManager extends NodeStore {
 	 * @param requestParameters
 	 */
 	void setRequestParameters(Parameters requestParameters);
+	
+	/**
+	 * Get request parameters
+	 * 
+	 * @return Parameters
+	 */
+	Parameters getRequestParameters();
 }

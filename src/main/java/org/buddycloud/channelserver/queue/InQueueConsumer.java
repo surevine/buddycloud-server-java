@@ -51,7 +51,7 @@ public class InQueueConsumer extends QueueConsumer {
 			LOGGER.debug("Received payload: '" + xml + "'.");
 
 			channelManager = channelManagerFactory.create();
-            channelManager.setRequestParameters(getRequestParameters(p)));
+            channelManager.setRequestParameters(getRequestParameters(p));
 			
 			if (p instanceof IQ) {
 				new IQProcessor(outQueue, conf, channelManager).process((IQ) p);

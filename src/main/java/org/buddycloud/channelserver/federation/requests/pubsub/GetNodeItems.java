@@ -1,7 +1,6 @@
 package org.buddycloud.channelserver.federation.requests.pubsub;
 
 import java.util.Collection;
-
 import org.buddycloud.channelserver.channel.ChannelManager;
 import org.buddycloud.channelserver.channel.ChannelNodeRef;
 import org.buddycloud.channelserver.connection.XMPPConnection;
@@ -21,14 +20,12 @@ import org.xmpp.packet.JID;
 public class GetNodeItems extends
 		ChannelServerRequestAbstract<CloseableIterator<NodeItem>> {
 
-	private ChannelManager channelManager;
-
 	private String nodeId;
 
 	public GetNodeItems(final ServiceDiscoveryRegistry discovery,
 			final XMPPConnection connection, final String nodeId,
-			Parameters requestParameters) {
-		super(discovery, connection, requestParameters);
+			ChannelManager channelManager) {
+		super(discovery, connection, channelManager);
 		this.nodeId = nodeId;
 	}
 
@@ -49,21 +46,22 @@ public class GetNodeItems extends
 
 		Element items = pubsub.addElement("items");
 		items.addAttribute("node", nodeId);
-		Element actor = pubsub.addElement("actor");
-		actor.addAttribute("jid", user.toBareJID());
-
+		
+		iq.setFrom(channelManager.getRequestParameters().getChannelsDomain());
+		iq.getChildElement().element("actor")
+				.addText(channelManager.getRequestParameters().getRequester().toBareJID());
+		//iq.setTo(discovery.discoverChannelServerJIDFromNodeId(nodeId, handler));
 		sendIq(iq, handler);
 	}
 
 	@Override
 	public void call(ResultHandler<CloseableIterator<NodeItem>> handler) {
-		// TODO Auto-generated method stub
+		
 		CloseableIterator<NodeItem> items;
-
 		try {
 			items = channelManager.getNodeItems(nodeId);
 
-			if (items.hasNext() || channelManager.isLocalNode(nodeId)) {
+			if ((items != null) && (items.hasNext() || channelManager.isLocalNode(nodeId))) {
 				handler.onSuccess(items);
 				return;
 			}
@@ -71,7 +69,6 @@ public class GetNodeItems extends
 			handler.onError(e);
 			return;
 		}
-
 		super.call(handler);
 	}
 
@@ -80,5 +77,4 @@ public class GetNodeItems extends
 		// TODO Auto-generated method stub
 		return null;
 	}
-
 }

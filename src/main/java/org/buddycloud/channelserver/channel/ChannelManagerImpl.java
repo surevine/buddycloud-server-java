@@ -232,4 +232,10 @@ public class ChannelManagerImpl implements ChannelManager {
 	public void setRequestParameters(Parameters requestParameters) {
 		this.requestParameters = requestParameters;		
 	}
+
+	@Override
+	public Parameters getRequestParameters() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

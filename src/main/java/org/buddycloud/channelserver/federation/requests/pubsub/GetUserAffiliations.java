@@ -10,6 +10,7 @@ import org.buddycloud.channelserver.federation.ServiceDiscoveryRegistry;
 import org.buddycloud.channelserver.packetprocessor.iq.namespace.pubsub.Buddycloud;
 import org.buddycloud.channelserver.packetprocessor.iq.namespace.pubsub.JabberPubsub;
 import org.buddycloud.channelserver.pubsub.model.NodeAffiliation;
+import org.buddycloud.channelserver.utils.request.Parameters;
 import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.JID;
@@ -18,8 +19,8 @@ public class GetUserAffiliations extends ChannelServerRequestAbstract<Collection
 
 	private final JID user;
 
-	public GetUserAffiliations(final XMPPConnection connection, final ServiceDiscoveryRegistry discovery, final JID user) {
-		super(discovery, connection);
+	public GetUserAffiliations(final XMPPConnection connection, final ServiceDiscoveryRegistry discovery, final JID user, Parameters requestParameters) {
+		super(discovery, connection, requestParameters);
 		this.user = user;
 	}
 	
@@ -43,11 +44,6 @@ public class GetUserAffiliations extends ChannelServerRequestAbstract<Collection
 		actor.addNamespace("", Buddycloud.NAMESPACE);				
 
 		sendIq(iq, handler);
-	}
-	
-	private Collection<NodeAffiliation> fromIQ(final IQ iq) {
-		// Do stuff
-		return Collections.emptyList();
 	}
 
 	@Override
