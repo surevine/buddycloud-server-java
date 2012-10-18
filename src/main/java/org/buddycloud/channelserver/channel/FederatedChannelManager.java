@@ -25,11 +25,11 @@ import org.xmpp.packet.PacketError;
 
 public class FederatedChannelManager implements ChannelManager {
 
-	private final AsyncChannelManager delegate;
+	private final ChannelManager delegate;
 	private final XMPPConnection xmppConnection;
 	private final ServiceDiscoveryRegistry discoveryRegistry;
 	
-	public FederatedChannelManager(final AsyncChannelManager delgate, final XMPPConnection xmppConnection, final ServiceDiscoveryRegistry discoveryRegistry) {
+	public FederatedChannelManager(final ChannelManager delgate, final XMPPConnection xmppConnection, final ServiceDiscoveryRegistry discoveryRegistry) {
 		this.delegate = delgate;
 		this.xmppConnection = xmppConnection;
 		this.discoveryRegistry = discoveryRegistry;
@@ -180,11 +180,11 @@ public class FederatedChannelManager implements ChannelManager {
 		final ArrayList<CloseableIterator<NodeItem>> result = new ArrayList<CloseableIterator<NodeItem>>(1);
 		final ArrayList<Throwable> error = new ArrayList<Throwable>(1);
 		
-		GetNodeItems gua = new GetNodeItems(discoveryRegistry, xmppConnection, nodeId);
+		GetNodeItems getNodeItems = new GetNodeItems(discoveryRegistry, xmppConnection, nodeId);
 		
 		final Thread thread = Thread.currentThread();
 		
-		gua.call(new ResultHandler<CloseableIterator<NodeItem>>() {
+		getNodeItems.call(new ResultHandler<CloseableIterator<NodeItem>>() {
 			
 			@Override
 			public void onSuccess(CloseableIterator<NodeItem> items) {
@@ -268,14 +268,12 @@ public class FederatedChannelManager implements ChannelManager {
 
 	@Override
 	public boolean isLocalNode(String nodeId) throws NodeStoreException {
-		// TODO Auto-generated method stub
-		return false;
+		return delegate.isLocalNode(nodeId);
 	}
 
 	@Override
 	public boolean isLocalJID(JID jid) throws NodeStoreException {
-		// TODO Auto-generated method stub
-		return false;
+		return delegate.isLocalJID(jid);
 	}
 
 }
