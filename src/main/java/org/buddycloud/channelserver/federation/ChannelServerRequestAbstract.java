@@ -39,7 +39,7 @@ public abstract class ChannelServerRequestAbstract<T> implements AsyncCall<T> {
 					}
 				});
 	}
-
+	
 	protected void sendIq(IQ iq, final ResultHandler<T> handler) {
 
 		connection.sendIQ(iq, new XMPPConnection.IQHandler() {

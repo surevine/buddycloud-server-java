@@ -2,9 +2,7 @@ package org.buddycloud.channelserver.channel;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
 
 import org.buddycloud.channelserver.connection.XMPPConnection;
 import org.buddycloud.channelserver.db.CloseableIterator;
@@ -13,30 +11,28 @@ import org.buddycloud.channelserver.federation.AsyncCall.ResultHandler;
 import org.buddycloud.channelserver.federation.ServiceDiscoveryRegistry;
 import org.buddycloud.channelserver.federation.requests.pubsub.GetNodeItems;
 import org.buddycloud.channelserver.federation.requests.pubsub.GetUserAffiliations;
-import org.buddycloud.channelserver.federation.requests.pubsub.GetUserAffiliationsProcessor;
-import org.buddycloud.channelserver.pubsub.affiliation.Affiliation;
 import org.buddycloud.channelserver.pubsub.affiliation.Affiliations;
 import org.buddycloud.channelserver.pubsub.model.NodeAffiliation;
 import org.buddycloud.channelserver.pubsub.model.NodeItem;
 import org.buddycloud.channelserver.pubsub.model.NodeSubscription;
 import org.buddycloud.channelserver.utils.request.Parameters;
-import org.xmpp.packet.IQ;
 import org.xmpp.packet.JID;
-import org.xmpp.packet.PacketError;
 
 public class FederatedChannelManager implements ChannelManager {
 
-	private final AsyncChannelManager delegate;
+	private final ChannelManager delegate;
 	private final XMPPConnection xmppConnection;
 	private final ServiceDiscoveryRegistry discoveryRegistry;
+	private final OperationsFactory operations;
 	private Parameters requestParameters;
 
-	public FederatedChannelManager(final AsyncChannelManager delgate,
+	public FederatedChannelManager(final ChannelManager delgate,
 			final XMPPConnection xmppConnection,
-			final ServiceDiscoveryRegistry discoveryRegistry) {
+			final ServiceDiscoveryRegistry discoveryRegistry, final OperationsFactory operationsFactory) {
 		this.delegate = delgate;
 		this.xmppConnection = xmppConnection;
 		this.discoveryRegistry = discoveryRegistry;
+		this.operations = operationsFactory;
 	}
 
 	@Override
@@ -104,6 +100,7 @@ public class FederatedChannelManager implements ChannelManager {
 	@Override
 	public Collection<NodeAffiliation> getUserAffiliations(JID user)
 			throws NodeStoreException {
+
 		final ArrayList<Collection<NodeAffiliation>> result = new ArrayList<Collection<NodeAffiliation>>(
 				1);
 		final ArrayList<Throwable> error = new ArrayList<Throwable>(1);
@@ -184,26 +181,24 @@ public class FederatedChannelManager implements ChannelManager {
 	@Override
 	public CloseableIterator<NodeItem> getNodeItems(String nodeId)
 			throws NodeStoreException {
-		final ArrayList<CloseableIterator<NodeItem>> result = new ArrayList<CloseableIterator<NodeItem>>(
-				1);
-		final ArrayList<Throwable> error = new ArrayList<Throwable>(1);
+		final ObjectHolder<CloseableIterator<NodeItem>> result = new ObjectHolder<CloseableIterator<NodeItem>>();
+		final ObjectHolder<Throwable> error = new ObjectHolder<Throwable>();
 
-		GetNodeItems gua = new GetNodeItems(discoveryRegistry, xmppConnection,
-				nodeId, this);
+		GetNodeItems getNodeItems = operations.getNodeItems(nodeId);
 
 		final Thread thread = Thread.currentThread();
 
-		gua.call(new ResultHandler<CloseableIterator<NodeItem>>() {
+		getNodeItems.call(new ResultHandler<CloseableIterator<NodeItem>>() {
 
 			@Override
 			public void onSuccess(CloseableIterator<NodeItem> items) {
-				result.set(0, items);
+				result.set(items);
 				thread.interrupt();
 			}
 
 			@Override
 			public void onError(Throwable t) {
-				error.set(0, t);
+				error.set(t);
 				thread.interrupt();
 			}
 		});
@@ -211,15 +206,15 @@ public class FederatedChannelManager implements ChannelManager {
 		try {
 			Thread.sleep(60000);
 		} catch (InterruptedException e) {
-			if (!result.isEmpty()) {
-				return result.get(0);
+			if (result.get() != null) {
+				return result.get();
 			}
 
-			if (error.get(0) instanceof NodeStoreException) {
-				throw (NodeStoreException) error.get(0);
+			if (error.get() instanceof NodeStoreException) {
+				throw (NodeStoreException) error.get();
 			} else {
 				throw new NodeStoreException("Unexpected error caught",
-						error.get(0));
+						error.get());
 			}
 		}
 
@@ -278,22 +273,36 @@ public class FederatedChannelManager implements ChannelManager {
 
 	@Override
 	public boolean isLocalNode(String nodeId) throws NodeStoreException {
-		// TODO Auto-generated method stub
-		return false;
+		return delegate.isLocalNode(nodeId);
 	}
 
 	@Override
 	public boolean isLocalJID(JID jid) throws NodeStoreException {
-		// TODO Auto-generated method stub
-		return false;
+		return delegate.isLocalJID(jid);
 	}
 
 	@Override
 	public void setRequestParameters(Parameters requestParameters) {
 		this.requestParameters = requestParameters;
 	}
-	
+
 	public Parameters getRequestParameters() {
 		return requestParameters;
+	}
+
+	/**
+	 * Holds a reference to an object. This is used to pass objects from an inner class method to the outer class.
+	 * @param <T> the type of the object to hold.
+	 */
+	private class ObjectHolder<T> {
+		private T obj;
+		
+		public T get() {
+			return obj;
+		}
+		
+		public void set(final T obj) {
+			this.obj = obj;
+		}
 	}
 }

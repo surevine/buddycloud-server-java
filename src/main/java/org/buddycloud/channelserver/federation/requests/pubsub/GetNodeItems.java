@@ -51,6 +51,7 @@ public class GetNodeItems extends
 		iq.getChildElement().element("actor")
 				.addText(channelManager.getRequestParameters().getRequester().toBareJID());
 		//iq.setTo(discovery.discoverChannelServerJIDFromNodeId(nodeId, handler));
+
 		sendIq(iq, handler);
 	}
 
