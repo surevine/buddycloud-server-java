@@ -64,10 +64,10 @@ public class ChannelsEngine implements Component {
 		} catch (NodeStoreException e) {
 			throw new ComponentException(e);
 		}
-		IQRequestProcessor processor = new IQRequestProcessor(xmppConnection);
-		ServiceDiscoveryRegistry registry = new ServiceDiscoveryRegistry(processor);
+		ServiceDiscoveryRegistry registry = new ServiceDiscoveryRegistry(xmppConnection, Configuration.getInstance());
+		
 		ChannelManagerFactory channelManagerFactory = new ChannelManagerFactoryImpl(
-				conf, nodeStoreFactory, xmppConnection, registry 
+				conf, nodeStoreFactory, xmppConnection, registry
 		);
 		
 		OutQueueConsumer outQueueConsumer = new OutQueueConsumer(this, outQueue);

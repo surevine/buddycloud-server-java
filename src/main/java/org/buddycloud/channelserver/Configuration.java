@@ -12,7 +12,9 @@ public class Configuration extends Properties
 	public static final String CONFIGURATION_SERVER_DOMAIN = "server.domain";
 	public static final String CONFIGURATION_SERVER_CHANNELS_DOMAIN = "server.domain.channels";
 	public static final String CONFIGURATION_SERVER_TOPICS_DOMAIN = "server.domain.topics";
-	
+
+	public static final String CONFIGURATION_REMOTE_TIMEOUT = "server.remote.timeout";
+
 	private static final String CONFIGURATION_FILE = "configuration.properties";
 	private static Configuration instance          = null;
 	

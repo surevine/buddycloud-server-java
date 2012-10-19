@@ -1,12 +1,8 @@
 package org.buddycloud.channelserver.federation;
 
-import org.buddycloud.channelserver.Configuration;
-import org.buddycloud.channelserver.channel.ChannelManagerImpl;
-import org.buddycloud.channelserver.connection.XMPPConnection;
 import org.buddycloud.channelserver.channel.ChannelManager;
+import org.buddycloud.channelserver.connection.XMPPConnection;
 import org.buddycloud.channelserver.db.exception.NodeStoreException;
-import org.buddycloud.channelserver.utils.request.Parameters;
-import org.dom4j.Element;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.JID;
 
