@@ -12,6 +12,7 @@ import org.buddycloud.channelserver.federation.AsyncCall.ResultHandler;
 import org.buddycloud.channelserver.federation.ServiceDiscoveryRegistry;
 import org.buddycloud.channelserver.federation.requests.pubsub.GetNodeItems;
 import org.buddycloud.channelserver.federation.requests.pubsub.GetUserAffiliations;
+import org.buddycloud.channelserver.federation.requests.pubsub.NodeExists;
 import org.buddycloud.channelserver.pubsub.affiliation.Affiliations;
 import org.buddycloud.channelserver.pubsub.model.NodeAffiliation;
 import org.buddycloud.channelserver.pubsub.model.NodeItem;
@@ -72,8 +73,43 @@ public class FederatedChannelManager implements ChannelManager {
 
 	@Override
 	public boolean nodeExists(String nodeId) throws NodeStoreException {
-		// TODO Auto-generated method stub
-		return delegate.nodeExists(nodeId);
+		final ObjectHolder<Boolean> result = new ObjectHolder<Boolean>();
+		final ObjectHolder<Throwable> error = new ObjectHolder<Throwable>();
+
+		NodeExists nodeExists = operations.nodeExists(nodeId);
+
+		final Thread thread = Thread.currentThread();
+
+		nodeExists.call(new ResultHandler<Boolean>() {
+
+			@Override
+			public void onSuccess(Boolean exists) {
+				result.set(exists);
+				thread.interrupt();
+			}
+
+			@Override
+			public void onError(Throwable t) {
+				error.set(t);
+				thread.interrupt();
+			}
+		});
+
+		try {
+			Thread.sleep(60000);
+		} catch (InterruptedException e) {
+			if (result.get() != null) {
+				return result.get();
+			}
+
+			if (error.get() instanceof NodeStoreException) {
+				throw (NodeStoreException) error.get();
+			} else {
+				throw new NodeStoreException("Unexpected error caught",
+						error.get());
+			}
+		}
+		throw new NodeStoreException("Timed out");
 	}
 
 	@Override
@@ -176,7 +212,6 @@ return delegate.getUserAffiliations(user);
 	@Override
 	public CloseableIterator<NodeItem> getNodeItems(String nodeId,
 			String afterItemId, int count) throws NodeStoreException {
-		logger.debug("\n********************\nUsing the federated object\n\n");
 		final ObjectHolder<CloseableIterator<NodeItem>> result = new ObjectHolder<CloseableIterator<NodeItem>>();
 		final ObjectHolder<Throwable> error = new ObjectHolder<Throwable>();
 

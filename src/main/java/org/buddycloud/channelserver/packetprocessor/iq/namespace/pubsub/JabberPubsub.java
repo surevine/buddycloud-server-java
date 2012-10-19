@@ -18,6 +18,7 @@ public class JabberPubsub extends AbstractNamespace {
 	public static final String NS_PUBSUB_EVENT  = "http://jabber.org/protocol/pubsub#event";
 	public static final String NS_PUBSUB_OWNER  = "http://jabber.org/protocol/pubsub#owner";
 	public static final String NS_DISCO_ITEMS   = "http://jabber.org/protocol/disco#items";
+	public static final String NS_DISCO_INFO    = "http://jabber.org/protocol/disco#info";
 	public static final String NS_AUTHORIZATION = "http://jabber.org/protocol/pubsub#subscribe_authorization";
 
 	public static final String VAR_NODE           = "pubsub#node";
