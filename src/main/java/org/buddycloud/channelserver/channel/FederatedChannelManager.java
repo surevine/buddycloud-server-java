@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
 import org.buddycloud.channelserver.connection.XMPPConnection;
 import org.buddycloud.channelserver.db.CloseableIterator;
 import org.buddycloud.channelserver.db.exception.NodeStoreException;
@@ -25,6 +26,8 @@ public class FederatedChannelManager implements ChannelManager {
 	private final ServiceDiscoveryRegistry discoveryRegistry;
 	private final OperationsFactory operations;
 	private Parameters requestParameters;
+	
+	private static final Logger logger = Logger.getLogger(FederatedChannelManager.class);
 
 	public FederatedChannelManager(final ChannelManager delgate,
 			final XMPPConnection xmppConnection,
@@ -97,7 +100,8 @@ public class FederatedChannelManager implements ChannelManager {
 	@Override
 	public Collection<NodeAffiliation> getUserAffiliations(JID user)
 			throws NodeStoreException {
-
+return delegate.getUserAffiliations(user);
+/*
 		final ArrayList<Collection<NodeAffiliation>> result = new ArrayList<Collection<NodeAffiliation>>(
 				1);
 		final ArrayList<Throwable> error = new ArrayList<Throwable>(1);
@@ -138,6 +142,7 @@ public class FederatedChannelManager implements ChannelManager {
 		}
 
 		throw new NodeStoreException("Timed out");
+*/
 	}
 
 	@Override
@@ -171,13 +176,7 @@ public class FederatedChannelManager implements ChannelManager {
 	@Override
 	public CloseableIterator<NodeItem> getNodeItems(String nodeId,
 			String afterItemId, int count) throws NodeStoreException {
-		// TODO Auto-generated method stub
-		return delegate.getNodeItems(nodeId, afterItemId, count);
-	}
-
-	@Override
-	public CloseableIterator<NodeItem> getNodeItems(String nodeId)
-			throws NodeStoreException {
+		logger.debug("\n********************\nUsing the federated object\n\n");
 		final ObjectHolder<CloseableIterator<NodeItem>> result = new ObjectHolder<CloseableIterator<NodeItem>>();
 		final ObjectHolder<Throwable> error = new ObjectHolder<Throwable>();
 
@@ -214,8 +213,13 @@ public class FederatedChannelManager implements ChannelManager {
 						error.get());
 			}
 		}
-
 		throw new NodeStoreException("Timed out");
+	}
+
+	@Override
+	public CloseableIterator<NodeItem> getNodeItems(String nodeId)
+			throws NodeStoreException {
+		return getNodeItems(nodeId, null, 30);
 	}
 
 	@Override
