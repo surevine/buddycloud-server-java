@@ -38,55 +38,52 @@ public class FederatedChannelManager implements ChannelManager {
 	@Override
 	public void createNode(JID owner, String nodeId,
 			Map<String, String> nodeConf) throws NodeStoreException {
-		// TODO Auto-generated method stub
-
+		delegate.createNode(owner, nodeId, nodeConf);
 	}
 
 	@Override
 	public void setNodeConfValue(String nodeId, String key, String value)
 			throws NodeStoreException {
-		// TODO Auto-generated method stub
-
+		delegate.setNodeConfValue(nodeId, key, value);
 	}
 
 	@Override
 	public void setNodeConf(String nodeId, Map<String, String> conf)
 			throws NodeStoreException {
-		// TODO Auto-generated method stub
-
+		delegate.setNodeConf(nodeId, conf);
 	}
 
 	@Override
 	public String getNodeConfValue(String nodeId, String key)
 			throws NodeStoreException {
 		// TODO Auto-generated method stub
-		return null;
+		return delegate.getNodeConfValue(nodeId, key);
 	}
 
 	@Override
 	public Map<String, String> getNodeConf(String nodeId)
 			throws NodeStoreException {
 		// TODO Auto-generated method stub
-		return null;
+		return delegate.getNodeConf(nodeId);
 	}
 
 	@Override
 	public boolean nodeExists(String nodeId) throws NodeStoreException {
 		// TODO Auto-generated method stub
-		return false;
+		return delegate.nodeExists(nodeId);
 	}
 
 	@Override
 	public void setUserAffiliation(String nodeId, JID user,
 			Affiliations affiliation) throws NodeStoreException {
-		// TODO Auto-generated method stub
+		delegate.setUserAffiliation(nodeId, user, affiliation);
 
 	}
 
 	@Override
 	public void addUserSubscription(NodeSubscription subscription)
 			throws NodeStoreException {
-		// TODO Auto-generated method stub
+		delegate.addUserSubscription(subscription);
 
 	}
 
@@ -94,7 +91,7 @@ public class FederatedChannelManager implements ChannelManager {
 	public NodeAffiliation getUserAffiliation(String nodeId, JID user)
 			throws NodeStoreException {
 		// TODO Auto-generated method stub
-		return null;
+		return delegate.getUserAffiliation(nodeId, user);
 	}
 
 	@Override
@@ -147,35 +144,35 @@ public class FederatedChannelManager implements ChannelManager {
 	public Collection<NodeAffiliation> getNodeAffiliations(String nodeId)
 			throws NodeStoreException {
 		// TODO Auto-generated method stub
-		return null;
+		return delegate.getNodeAffiliations(nodeId);
 	}
 
 	@Override
 	public Collection<NodeSubscription> getUserSubscriptions(JID user)
 			throws NodeStoreException {
 		// TODO Auto-generated method stub
-		return null;
+		return delegate.getUserSubscriptions(user);
 	}
 
 	@Override
 	public Collection<NodeSubscription> getNodeSubscriptions(String nodeId)
 			throws NodeStoreException {
 		// TODO Auto-generated method stub
-		return null;
+		return delegate.getNodeSubscriptions(nodeId);
 	}
 
 	@Override
 	public NodeSubscription getUserSubscription(String nodeId, JID user)
 			throws NodeStoreException {
 		// TODO Auto-generated method stub
-		return null;
+		return delegate.getUserSubscription(nodeId, user);
 	}
 
 	@Override
 	public CloseableIterator<NodeItem> getNodeItems(String nodeId,
 			String afterItemId, int count) throws NodeStoreException {
 		// TODO Auto-generated method stub
-		return null;
+		return delegate.getNodeItems(nodeId, afterItemId, count);
 	}
 
 	@Override
@@ -224,51 +221,45 @@ public class FederatedChannelManager implements ChannelManager {
 	@Override
 	public int countNodeItems(String nodeId) throws NodeStoreException {
 		// TODO Auto-generated method stub
-		return 0;
+		return delegate.countNodeItems(nodeId);
 	}
 
 	@Override
 	public NodeItem getNodeItem(String nodeId, String nodeItemId)
 			throws NodeStoreException {
 		// TODO Auto-generated method stub
-		return null;
+		return delegate.getNodeItem(nodeId, nodeItemId);
 	}
 
 	@Override
 	public void addNodeItem(NodeItem item) throws NodeStoreException {
-		// TODO Auto-generated method stub
-
+		delegate.addNodeItem(item);
 	}
 
 	@Override
 	public void updateNodeItem(NodeItem item) throws NodeStoreException {
-		// TODO Auto-generated method stub
-
+		delegate.updateNodeItem(item);
 	}
 
 	@Override
 	public void deleteNodeItemById(String nodeId, String nodeItemId)
 			throws NodeStoreException {
-		// TODO Auto-generated method stub
-
+		delegate.deleteNodeItemById(nodeId, nodeItemId);
 	}
 
 	@Override
 	public void close() throws NodeStoreException {
-		// TODO Auto-generated method stub
-
+		delegate.close();
 	}
 
 	@Override
 	public Transaction beginTransaction() throws NodeStoreException {
-		// TODO Auto-generated method stub
-		return null;
+		return delegate.beginTransaction();
 	}
 
 	@Override
 	public void createPersonalChannel(JID ownerJID) throws NodeStoreException {
-		// TODO Auto-generated method stub
-
+		delegate.createPersonalChannel(ownerJID);
 	}
 
 	@Override
