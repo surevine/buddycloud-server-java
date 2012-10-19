@@ -1,15 +1,17 @@
 package org.buddycloud.channelserver.federation;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.buddycloud.channelserver.connection.iq.IQRequestProcessor;
-import org.buddycloud.channelserver.federation.requests.disco.DiscoInfoIQRequest;
-import org.buddycloud.channelserver.federation.requests.disco.DiscoItemsIQRequest;
-import org.buddycloud.channelserver.federation.requests.disco.DiscoInfoIQRequest.Identity;
-import org.buddycloud.channelserver.node.NodeRef;
+import org.apache.log4j.Logger;
+import org.buddycloud.channelserver.Configuration;
+import org.buddycloud.channelserver.connection.XMPPConnection;
+import org.buddycloud.channelserver.db.exception.NodeStoreException;
+import org.buddycloud.channelserver.federation.AsyncCall.ResultHandler;
+import org.buddycloud.channelserver.federation.requests.disco.DiscoInfo;
+import org.buddycloud.channelserver.federation.requests.disco.DiscoInfo.Identity;
+import org.buddycloud.channelserver.federation.requests.disco.DiscoItems;
 import org.xmpp.packet.JID;
 
 public class ServiceDiscoveryRegistry {
@@ -18,12 +20,16 @@ public class ServiceDiscoveryRegistry {
 		void onError(Throwable t);
 	}
 	
-	private final IQRequestProcessor iqRequestProcessor;
+	private static Logger LOGGER = Logger.getLogger(ServiceDiscoveryRegistry.class);
+	
+	private final XMPPConnection connection;
+	private final Configuration configuration;
 	
 	private final Map<String,JID> channelServers;
 	
-	public ServiceDiscoveryRegistry(final IQRequestProcessor iqRequestProcessor) {
-		this.iqRequestProcessor = iqRequestProcessor;
+	public ServiceDiscoveryRegistry(final XMPPConnection connection, final Configuration configuration) {
+		this.connection = connection;
+		this.configuration = configuration;
 		channelServers = new HashMap<String,JID>();
 	}
 	
@@ -48,8 +54,9 @@ public class ServiceDiscoveryRegistry {
 			return;
 		}
 		
-		DiscoItemsIQRequest itemsRequest = new DiscoItemsIQRequest(new JID(remoteDomain), new DiscoItemsIQRequest.Handler() {
-			
+		DiscoItems itemsRequest = new DiscoItems(connection, configuration, new JID(remoteDomain));
+		
+		itemsRequest.call(new AsyncCall.ResultHandler<Collection<JID>>() {
 			@Override
 			public void onSuccess(final Collection<JID> result) {
 				// Then for each item we do an info query until we find the appropriate identity
@@ -63,23 +70,35 @@ public class ServiceDiscoveryRegistry {
 						return;
 					}
 
-					DiscoInfoIQRequest infoRequest = new DiscoInfoIQRequest(jid, new DiscoInfoIQRequest.Handler() {
-						
+					DiscoInfo infoRequest = new DiscoInfo(connection, configuration, jid);
+					
+					infoRequest.call(new ResultHandler<Collection<Identity>>() {
 						@Override
 						public void onSuccess(final Collection<Identity> result) {
 							for(Identity identity : result) {
 								if(identity.getCategory().equals("pubsub") && identity.getCategory().equals("channels")) {
 									channelServers.put(remoteDomain, jid);
+									handler.onSuccess(jid);
+									return;
 								}
 							}
 						}
+
+						@Override
+						public void onError(Throwable t) {
+							LOGGER.info("Error returned from disco#items for " + jid, t);
+						}
 					});
 					
-					iqRequestProcessor.processRequest(infoRequest);
+					// TODO
+					handler.onError(new NodeStoreException());
 				}
 			}
+
+			@Override
+			public void onError(Throwable t) {
+				handler.onError(t);
+			}
 		});
-		
-		iqRequestProcessor.processRequest(itemsRequest);
 	}
 }

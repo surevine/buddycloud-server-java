@@ -29,9 +29,8 @@ public class ChannelManagerFactoryImpl implements ChannelManagerFactory {
 		ChannelManager localDataStore = new ChannelManagerImpl(
 				nodeStoreFactory.create(), configuration);
 
-		OperationsFactory operations = new OperationsFactory(registry, connection,
-				localDataStore); 
-
+		OperationsFactory operations = new OperationsFactory(registry, connection, localDataStore);
+		
 		return new FederatedChannelManager(localDataStore, connection,
 				registry, operations);
 	}

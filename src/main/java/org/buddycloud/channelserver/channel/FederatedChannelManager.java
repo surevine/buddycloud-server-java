@@ -1,6 +1,5 @@
 package org.buddycloud.channelserver.channel;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
@@ -11,7 +10,6 @@ import org.buddycloud.channelserver.db.exception.NodeStoreException;
 import org.buddycloud.channelserver.federation.AsyncCall.ResultHandler;
 import org.buddycloud.channelserver.federation.ServiceDiscoveryRegistry;
 import org.buddycloud.channelserver.federation.requests.pubsub.GetNodeItems;
-import org.buddycloud.channelserver.federation.requests.pubsub.GetUserAffiliations;
 import org.buddycloud.channelserver.federation.requests.pubsub.NodeExists;
 import org.buddycloud.channelserver.pubsub.affiliation.Affiliations;
 import org.buddycloud.channelserver.pubsub.model.NodeAffiliation;
@@ -136,48 +134,8 @@ public class FederatedChannelManager implements ChannelManager {
 	@Override
 	public Collection<NodeAffiliation> getUserAffiliations(JID user)
 			throws NodeStoreException {
-return delegate.getUserAffiliations(user);
-/*
-		final ArrayList<Collection<NodeAffiliation>> result = new ArrayList<Collection<NodeAffiliation>>(
-				1);
-		final ArrayList<Throwable> error = new ArrayList<Throwable>(1);
-
-		GetUserAffiliations gua = new GetUserAffiliations(xmppConnection,
-				discoveryRegistry, user, requestParameters);
-
-		final Thread thread = Thread.currentThread();
-
-		gua.call(new ResultHandler<Collection<NodeAffiliation>>() {
-
-			@Override
-			public void onSuccess(Collection<NodeAffiliation> affiliations) {
-				result.set(0, affiliations);
-				thread.interrupt();
-			}
-
-			@Override
-			public void onError(Throwable t) {
-				error.set(0, t);
-				thread.interrupt();
-			}
-		});
-
-		try {
-			Thread.sleep(60000);
-		} catch (InterruptedException e) {
-			if (!result.isEmpty()) {
-				return result.get(0);
-			}
-
-			if (error.get(0) instanceof NodeStoreException) {
-				throw (NodeStoreException) error.get(0);
-			} else {
-				throw new NodeStoreException("Unexpected error caught",
-						error.get(0));
-			}
-		}
-
-		throw new NodeStoreException("Timed out");
+		// TODO Auto-generated method stub
+		return delegate.getUserAffiliations(user);
 */
 	}
 
