@@ -3,12 +3,14 @@ package org.buddycloud.channelserver.channel;
 import java.util.Collection;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
 import org.buddycloud.channelserver.connection.XMPPConnection;
 import org.buddycloud.channelserver.db.CloseableIterator;
 import org.buddycloud.channelserver.db.exception.NodeStoreException;
 import org.buddycloud.channelserver.federation.AsyncCall.ResultHandler;
 import org.buddycloud.channelserver.federation.ServiceDiscoveryRegistry;
 import org.buddycloud.channelserver.federation.requests.pubsub.GetNodeItems;
+import org.buddycloud.channelserver.federation.requests.pubsub.NodeExists;
 import org.buddycloud.channelserver.pubsub.affiliation.Affiliations;
 import org.buddycloud.channelserver.pubsub.model.NodeAffiliation;
 import org.buddycloud.channelserver.pubsub.model.NodeItem;
@@ -23,6 +25,8 @@ public class FederatedChannelManager implements ChannelManager {
 	private final ServiceDiscoveryRegistry discoveryRegistry;
 	private final OperationsFactory operations;
 	private Parameters requestParameters;
+	
+	private static final Logger logger = Logger.getLogger(FederatedChannelManager.class);
 
 	public FederatedChannelManager(final ChannelManager delgate,
 			final XMPPConnection xmppConnection,
@@ -67,8 +71,43 @@ public class FederatedChannelManager implements ChannelManager {
 
 	@Override
 	public boolean nodeExists(String nodeId) throws NodeStoreException {
-		// TODO Auto-generated method stub
-		return delegate.nodeExists(nodeId);
+		final ObjectHolder<Boolean> result = new ObjectHolder<Boolean>();
+		final ObjectHolder<Throwable> error = new ObjectHolder<Throwable>();
+
+		NodeExists nodeExists = operations.nodeExists(nodeId);
+
+		final Thread thread = Thread.currentThread();
+
+		nodeExists.call(new ResultHandler<Boolean>() {
+
+			@Override
+			public void onSuccess(Boolean exists) {
+				result.set(exists);
+				thread.interrupt();
+			}
+
+			@Override
+			public void onError(Throwable t) {
+				error.set(t);
+				thread.interrupt();
+			}
+		});
+
+		try {
+			Thread.sleep(60000);
+		} catch (InterruptedException e) {
+			if (result.get() != null) {
+				return result.get();
+			}
+
+			if (error.get() instanceof NodeStoreException) {
+				throw (NodeStoreException) error.get();
+			} else {
+				throw new NodeStoreException("Unexpected error caught",
+						error.get());
+			}
+		}
+		throw new NodeStoreException("Timed out");
 	}
 
 	@Override
@@ -97,6 +136,7 @@ public class FederatedChannelManager implements ChannelManager {
 			throws NodeStoreException {
 		// TODO Auto-generated method stub
 		return delegate.getUserAffiliations(user);
+*/
 	}
 
 	@Override
@@ -130,13 +170,6 @@ public class FederatedChannelManager implements ChannelManager {
 	@Override
 	public CloseableIterator<NodeItem> getNodeItems(String nodeId,
 			String afterItemId, int count) throws NodeStoreException {
-		// TODO Auto-generated method stub
-		return delegate.getNodeItems(nodeId, afterItemId, count);
-	}
-
-	@Override
-	public CloseableIterator<NodeItem> getNodeItems(String nodeId)
-			throws NodeStoreException {
 		final ObjectHolder<CloseableIterator<NodeItem>> result = new ObjectHolder<CloseableIterator<NodeItem>>();
 		final ObjectHolder<Throwable> error = new ObjectHolder<Throwable>();
 
@@ -173,8 +206,13 @@ public class FederatedChannelManager implements ChannelManager {
 						error.get());
 			}
 		}
-
 		throw new NodeStoreException("Timed out");
+	}
+
+	@Override
+	public CloseableIterator<NodeItem> getNodeItems(String nodeId)
+			throws NodeStoreException {
+		return getNodeItems(nodeId, null, 30);
 	}
 
 	@Override

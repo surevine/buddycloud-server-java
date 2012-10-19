@@ -1,9 +1,15 @@
 package org.buddycloud.channelserver.federation.requests.pubsub;
 
+import java.text.DateFormat;
 import java.util.Collection;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.buddycloud.channelserver.channel.ChannelManager;
 import org.buddycloud.channelserver.channel.ChannelNodeRef;
 import org.buddycloud.channelserver.connection.XMPPConnection;
+import org.buddycloud.channelserver.db.ClosableIteratorImpl;
 import org.buddycloud.channelserver.db.CloseableIterator;
 import org.buddycloud.channelserver.db.exception.NodeStoreException;
 import org.buddycloud.channelserver.federation.ChannelServerRequestAbstract;
@@ -12,6 +18,7 @@ import org.buddycloud.channelserver.packetprocessor.iq.namespace.pubsub.Buddyclo
 import org.buddycloud.channelserver.packetprocessor.iq.namespace.pubsub.JabberPubsub;
 import org.buddycloud.channelserver.pubsub.model.NodeAffiliation;
 import org.buddycloud.channelserver.pubsub.model.NodeItem;
+import org.buddycloud.channelserver.pubsub.model.impl.NodeItemImpl;
 import org.buddycloud.channelserver.utils.request.Parameters;
 import org.dom4j.Element;
 import org.xmpp.packet.IQ;
@@ -75,7 +82,22 @@ public class GetNodeItems extends
 
 	@Override
 	protected CloseableIterator<NodeItem> fromIq(IQ iq) {
-		// TODO Auto-generated method stub
-		return null;
+		LinkedList<NodeItem> items = new LinkedList<NodeItem>();
+		NodeItem nodeItem;
+		String nodeId = iq.getElement().element("items").attributeValue("node");
+		String id;
+		Date updated;
+		try {
+		    List<Element> itemList = iq.getElement().elements("item");
+		    for (Element item : itemList) {
+		    	id = item.attributeValue("id");
+		    	updated = new Date(item.elementText("updated"));
+		    	nodeItem = new NodeItemImpl(nodeId, id, updated, item.element("entry").asXML());
+		    	items.push(nodeItem);
+		    }
+		} catch (NullPointerException e) {
+		    // Means no items
+		}
+		return new ClosableIteratorImpl<NodeItem>(items.iterator());
 	}
 }
