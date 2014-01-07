@@ -32,16 +32,16 @@ public class Search implements PacketProcessor<IQ> {
 	private final ChannelManager channelManager;
 	private IQ request;
 
-	private SearchGet searchGet;
-	private SearchSet searchSet;
+	private Get get;
+	private Set set;
 
 	public Search(BlockingQueue<Packet> outQueue,
 			ChannelManager channelManager) {
 		this.outQueue = outQueue;
 		this.channelManager = channelManager;
 		
-		this.searchGet = new SearchGet(outQueue, channelManager);
-		this.searchSet = new SearchSet(outQueue, channelManager);
+		this.get = new Get(outQueue, channelManager);
+		this.set = new Set(outQueue, channelManager);
 	}
 
 	@Override
@@ -49,11 +49,11 @@ public class Search implements PacketProcessor<IQ> {
 		request = reqIQ;
 		if (request.getType().equals(Type.get)) {
 			logger.trace("Using search processor: SearchGet");
-			this.searchGet.process(request);
+			this.get.process(request);
 			return;
 		} else if (request.getType().equals(Type.set)) {
 			logger.trace("Using search processor: SearchSet");
-			this.searchSet.process(request);
+			this.set.process(request);
 			return;
 		}
 		IQ response = IQ.createResultIQ(request);

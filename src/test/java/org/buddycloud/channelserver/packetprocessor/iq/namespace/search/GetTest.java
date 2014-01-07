@@ -42,7 +42,7 @@ import org.xmpp.packet.Packet;
 import org.xmpp.packet.PacketError;
 import org.xmpp.resultsetmanagement.ResultSetImpl;
 
-public class SearchGetTest extends IQTestHandler {
+public class GetTest extends IQTestHandler {
 
 	private IQ request;
 	private Element element;
@@ -50,7 +50,7 @@ public class SearchGetTest extends IQTestHandler {
 
 	private ChannelManager channelManager;
 
-	private SearchGet search;
+	private Get search;
 	private JID sender;
 	private JID receiver;
 
@@ -60,7 +60,7 @@ public class SearchGetTest extends IQTestHandler {
 		queue = new LinkedBlockingQueue<Packet>();
 		channelManager = Mockito.mock(ChannelManager.class);
 
-		search = new SearchGet(queue, channelManager);
+		search = new Get(queue, channelManager);
 
 		sender = new JID("channels.shakespeare.lit");
 		receiver = new JID("romeo@shakespeare.lit/home");
@@ -128,7 +128,7 @@ public class SearchGetTest extends IQTestHandler {
 		String instructions = response.getElement()
 				.element("query")
 				.elementText("instructions");
-		Assert.assertEquals(SearchGet.INSTRUCTIONS, instructions);
+		Assert.assertEquals(Get.INSTRUCTIONS, instructions);
 	}
 	
 	  
@@ -172,7 +172,7 @@ public class SearchGetTest extends IQTestHandler {
 				.element("x")
 				.elementText("title");
 	    Assert.assertNotNull(title);
-	    Assert.assertEquals(SearchGet.TITLE, title);
+	    Assert.assertEquals(Get.TITLE, title);
 	}
 
     @Test 
@@ -194,7 +194,7 @@ public class SearchGetTest extends IQTestHandler {
 				.element("x")
 				.elementText("instructions");
 	    Assert.assertNotNull(instructions);
-	    Assert.assertEquals(SearchGet.INSTRUCTIONS, instructions);
+	    Assert.assertEquals(Get.INSTRUCTIONS, instructions);
 	}
 
 	@Test
@@ -240,7 +240,7 @@ public class SearchGetTest extends IQTestHandler {
 				.elements("field").get(1);
 	    Assert.assertEquals("text-multi", formType.attributeValue("type"));
 	    Assert.assertEquals("content", formType.attributeValue("var"));
-	    Assert.assertEquals(SearchGet.CONTENT_FIELD_LABEL, formType.attributeValue("label"));
+	    Assert.assertEquals(Get.CONTENT_FIELD_LABEL, formType.attributeValue("label"));
 		
 	}
 	
@@ -264,7 +264,7 @@ public class SearchGetTest extends IQTestHandler {
 				.elements("field").get(2);
 	    Assert.assertEquals("jid-single", formType.attributeValue("type"));
 	    Assert.assertEquals("author", formType.attributeValue("var"));
-	    Assert.assertEquals(SearchGet.AUTHOR_FIELD_LABEL, formType.attributeValue("label"));
+	    Assert.assertEquals(Get.AUTHOR_FIELD_LABEL, formType.attributeValue("label"));
 	}
 	
 	@Test
@@ -287,7 +287,7 @@ public class SearchGetTest extends IQTestHandler {
 				.elements("field").get(3);
 	    Assert.assertEquals("fixed", formType.attributeValue("type"));
 	    Assert.assertEquals("rpp", formType.attributeValue("var"));
-	    Assert.assertEquals(SearchGet.RPP_FIELD_LABEL, formType.attributeValue("label"));
+	    Assert.assertEquals(Get.RPP_FIELD_LABEL, formType.attributeValue("label"));
 		
 	}
 	
@@ -311,6 +311,6 @@ public class SearchGetTest extends IQTestHandler {
 				.elements("field").get(4);
 	    Assert.assertEquals("fixed", formType.attributeValue("type"));
 	    Assert.assertEquals("page", formType.attributeValue("var"));
-	    Assert.assertEquals(SearchGet.PAGE_FIELD_LABEL, formType.attributeValue("label"));
+	    Assert.assertEquals(Get.PAGE_FIELD_LABEL, formType.attributeValue("label"));
 	}
 }

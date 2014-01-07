@@ -23,7 +23,7 @@ import org.xmpp.packet.JID;
 import org.xmpp.packet.Packet;
 import org.xmpp.packet.PacketError;
 
-public class SearchSet implements PacketProcessor<IQ> {
+public class Set implements PacketProcessor<IQ> {
 
 	private ChannelManager channelManager;
 	private BlockingQueue<Packet> outQueue;
@@ -37,9 +37,9 @@ public class SearchSet implements PacketProcessor<IQ> {
 	private JID author;
 	private JID searcher;
 	
-	public static Logger logger = Logger.getLogger(SearchSet.class);
+	public static Logger logger = Logger.getLogger(Set.class);
 
-	public SearchSet(BlockingQueue<Packet> outQueue,
+	public Set(BlockingQueue<Packet> outQueue,
 			ChannelManager channelManager) {
 		this.channelManager = channelManager;
 		this.outQueue = outQueue;

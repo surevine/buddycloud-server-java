@@ -25,7 +25,7 @@ import org.xmpp.packet.JID;
 import org.xmpp.packet.Packet;
 import org.xmpp.packet.PacketError;
 
-public class SearchSetTest extends IQTestHandler {
+public class SetTest extends IQTestHandler {
 
 	private IQ request;
 	private Element element;
@@ -33,7 +33,7 @@ public class SearchSetTest extends IQTestHandler {
 
 	private ChannelManager channelManager;
 
-	private SearchSet search;
+	private Set search;
 	private JID sender;
 	private JID receiver;
 	private IQ setStanza;
@@ -49,7 +49,7 @@ public class SearchSetTest extends IQTestHandler {
 		queue = new LinkedBlockingQueue<Packet>();
 		channelManager = Mockito.mock(ChannelManager.class);
 
-		search = new SearchSet(queue, channelManager);
+		search = new Set(queue, channelManager);
 
 		sender = new JID("channels.shakespeare.lit");
 		receiver = new JID("romeo@shakespeare.lit/home");

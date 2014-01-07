@@ -11,7 +11,7 @@ import org.xmpp.packet.Packet;
 import org.xmpp.packet.PacketError;
 import org.xmpp.packet.PacketError.Type;
 
-public class SearchGet implements PacketProcessor<IQ> {
+public class Get implements PacketProcessor<IQ> {
 
 	public static final String INSTRUCTIONS = "Search for content/hashtags/mentions";
 
@@ -27,7 +27,7 @@ public class SearchGet implements PacketProcessor<IQ> {
 
 	private Element x;
 
-	public SearchGet(BlockingQueue<Packet> outQueue,
+	public Get(BlockingQueue<Packet> outQueue,
 			ChannelManager channelManager) {
 		this.channelManager = channelManager;
 		this.outQueue = outQueue;
