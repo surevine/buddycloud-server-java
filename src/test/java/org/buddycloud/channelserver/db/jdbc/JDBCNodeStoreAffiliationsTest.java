@@ -52,11 +52,10 @@ public class JDBCNodeStoreAffiliationsTest extends JDBCNodeStoreAbstract {
 
         dbTester.assertions().assertTableContains("affiliations", new HashMap<String, Object>() {
             {
-                put("node", TEST_SERVER1_NODE1_ID);
                 put("user", "user2@example.com");
                 put("affiliation", Affiliations.member.toString());
             }
-        });
+        }, TEST_SERVER1_NODE1_ID);
     }
 
     @Test
@@ -67,19 +66,17 @@ public class JDBCNodeStoreAffiliationsTest extends JDBCNodeStoreAbstract {
 
         dbTester.assertions().assertTableContains("affiliations", new HashMap<String, Object>() {
             {
-                put("node", TEST_SERVER1_NODE1_ID);
                 put("user", "user1@example.com");
                 put("affiliation", Affiliations.member.toString());
             }
-        });
+        }, TEST_SERVER1_NODE1_ID);
 
         dbTester.assertions().assertTableContains("affiliations", new HashMap<String, Object>() {
             {
-                put("node", TEST_SERVER1_NODE1_ID);
                 put("user", "user1@example.com");
                 put("affiliation", Affiliations.owner.toString());
             }
-        }, 0);
+        }, TEST_SERVER1_NODE1_ID, 0);
     }
 
     @Test
@@ -89,10 +86,9 @@ public class JDBCNodeStoreAffiliationsTest extends JDBCNodeStoreAbstract {
         store.setUserAffiliation(TEST_SERVER1_NODE1_ID, new JID("user1@example.com"), Affiliations.none);
         dbTester.assertions().assertTableContains("affiliations", new HashMap<String, Object>() {
             {
-                put("node", TEST_SERVER1_NODE1_ID);
                 put("user", "user1@example.com");
             }
-        }, 0);
+        }, TEST_SERVER1_NODE1_ID, 0);
     }
 
     @Test
@@ -103,10 +99,9 @@ public class JDBCNodeStoreAffiliationsTest extends JDBCNodeStoreAbstract {
 
         dbTester.assertions().assertTableContains("affiliations", new HashMap<String, Object>() {
             {
-                put("node", TEST_SERVER1_NODE1_ID);
                 put("user", "user2@example.com");
                 put("affiliation", Affiliations.member.toString());
             }
-        });
+        }, TEST_SERVER1_NODE1_ID);
     }
 }

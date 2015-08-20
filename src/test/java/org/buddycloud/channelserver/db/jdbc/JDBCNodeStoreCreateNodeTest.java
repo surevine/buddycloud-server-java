@@ -25,13 +25,12 @@ public class JDBCNodeStoreCreateNodeTest extends JDBCNodeStoreAbstract {
         expected.put("node", TEST_SERVER1_NODE1_ID);
 
         dbTester.assertions().assertTableContains("nodes", expected);
-        dbTester.assertions().assertTableContains("node_config", expected, 0);
+        dbTester.assertions().assertTableContains("node_config", new HashMap<String, Object>(), TEST_SERVER1_NODE1_ID, 0);
 
         expected = new HashMap<String, Object>();
-        expected.put("node", TEST_SERVER1_NODE1_ID);
         expected.put("user", TEST_SERVER1_USER1_JID.toString());
         expected.put("affiliation", "owner");
-        dbTester.assertions().assertTableContains("affiliations", expected);
+        dbTester.assertions().assertTableContains("affiliations", expected, TEST_SERVER1_NODE1_ID);
     }
 
     @Test
@@ -43,26 +42,22 @@ public class JDBCNodeStoreCreateNodeTest extends JDBCNodeStoreAbstract {
         store.createNode(TEST_SERVER1_USER1_JID, TEST_SERVER1_NODE1_ID, config);
 
         HashMap<String, Object> expected = new HashMap<String, Object>();
-        expected.put("node", TEST_SERVER1_NODE1_ID);
-        dbTester.assertions().assertTableContains("nodes", expected);
+        dbTester.assertions().assertTableContains("nodes", expected, TEST_SERVER1_NODE1_ID);
 
         expected = new HashMap<String, Object>();
-        expected.put("node", TEST_SERVER1_NODE1_ID);
         expected.put("user", TEST_SERVER1_USER1_JID.toString());
         expected.put("affiliation", "owner");
-        dbTester.assertions().assertTableContains("affiliations", expected);
+        dbTester.assertions().assertTableContains("affiliations", expected, TEST_SERVER1_NODE1_ID);
 
         expected = new HashMap<String, Object>();
-        expected.put("node", TEST_SERVER1_NODE1_ID);
         expected.put("key", "CONFIG1");
         expected.put("value", "Value of CONFIG1");
-        dbTester.assertions().assertTableContains("node_config", expected);
+        dbTester.assertions().assertTableContains("node_config", expected, TEST_SERVER1_NODE1_ID);
 
         expected = new HashMap<String, Object>();
-        expected.put("node", TEST_SERVER1_NODE1_ID);
         expected.put("key", "CONFIG2");
         expected.put("value", "Value of CONFIG2");
-        dbTester.assertions().assertTableContains("node_config", expected);
+        dbTester.assertions().assertTableContains("node_config", expected, TEST_SERVER1_NODE1_ID);
     }
 
     @Test(expected = NullPointerException.class)
@@ -86,9 +81,8 @@ public class JDBCNodeStoreCreateNodeTest extends JDBCNodeStoreAbstract {
         store.createNode(TEST_SERVER1_USER1_JID_WITH_RESOURCE, TEST_SERVER1_NODE1_ID, new HashMap<String, String>());
 
         HashMap<String, Object> expected = new HashMap<String, Object>();
-        expected.put("node", TEST_SERVER1_NODE1_ID);
         expected.put("user", TEST_SERVER1_USER1_JID.toString());
         expected.put("affiliation", "owner");
-        dbTester.assertions().assertTableContains("affiliations", expected);
+        dbTester.assertions().assertTableContains("affiliations", expected, TEST_SERVER1_NODE1_ID);
     }
 }
