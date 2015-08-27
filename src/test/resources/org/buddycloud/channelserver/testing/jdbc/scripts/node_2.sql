@@ -10,7 +10,7 @@ INSERT INTO "subscriptions" ("node_id", "user", "listener", "subscription", "upd
 INSERT INTO "subscriptions" ("node_id", "user", "listener", "subscription", "updated") SELECT "node_id", 'user1@server2', 'channels.server2', 'subscribed', now() FROM "nodes" WHERE "node"='users/node2@server1/posts';
 
 INSERT INTO "threads" ("item_id", "updated", "node_id") SELECT 'node2:1', TIMESTAMP '2010-01-08 11:45:12', "node_id" FROM "nodes" WHERE "node" = 'users/node2@server1/posts';
-INSERT INTO "items" ("node_id", "id", "updated", "xml") SELECT "node_id", "item_id", "updated", '<entry xmlns="http://www.w3.org/2005/Atom" xmlns:activity="http://activitystrea.ms/spec/1.0/">
+INSERT INTO "items" ("thread_id", "node_id", "id", "updated", "xml") SELECT "thread_id", "node_id", "item_id", "updated", '<entry xmlns="http://www.w3.org/2005/Atom" xmlns:activity="http://activitystrea.ms/spec/1.0/">
                 <published>2010-01-08T11:45:12Z</published>
                 <author>
                    <name>user2@server1</name>
@@ -27,4 +27,4 @@ INSERT INTO "items" ("node_id", "id", "updated", "xml") SELECT "node_id", "item_
                 <activity:object>
                   <activity:object-type>note</activity:object-type>
                 </activity:object>
-             </entry>' FROM "threads" WHERE "item_id" = 'node:2:1'
+             </entry>' FROM "threads" WHERE "item_id" = 'node2:1';

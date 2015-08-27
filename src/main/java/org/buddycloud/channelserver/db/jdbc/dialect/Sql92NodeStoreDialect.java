@@ -201,33 +201,37 @@ public class Sql92NodeStoreDialect implements NodeStoreSQLDialect {
             + "AND \"updated\" > ? " + "%parentOnly% )";
 
     private static final String COUNT_ITEMS_FOR_NODE = "SELECT COUNT(*) "
-            + "FROM \"items\""
+            + "FROM \"items\" "
             + "JOIN \"nodes\" ON \"nodes\".\"node_id\" = \"items\".\"node_id\" "
-            + "WHERE \"node\" = ? %parentOnly%;";
+            + "WHERE \"node\" = ? %parentOnly%";
 
-    private static final String SELECT_ITEM_REPLIES = "" + "SELECT \"id\", \"node\", \"xml\", \"updated\", \"in_reply_to\", \"created\" "
-            + "FROM \"items\""
-            + "JOIN \"nodes\" ON \"nodes\".\"node_id\" = \"items\".\"node_id\" "
-            + " WHERE \"node\" = ? AND \"in_reply_to\" LIKE ? "
-            + "AND \"updated\" %beforeAfter% ? ORDER BY \"updated\" DESC";
+    private static final String SELECT_ITEM_REPLIES = "" + "SELECT \"id\", \"node\", \"xml\", \"items\".\"updated\", \"in_reply_to\", \"created\" "
+            + "FROM \"items\" "
+            + "JOIN \"threads\" ON \"threads\".\"thread_id\" = \"items\".\"thread_id\" "
+            + "JOIN \"nodes\" ON \"nodes\".\"node_id\" = \"threads\".\"node_id\" "
+            + " WHERE \"node\" = ? AND \"item_id\" = ? "
+            + " AND \"in_reply_to\" IS NOT NULL "
+            + "AND \"items\".\"updated\" %beforeAfter% ? ORDER BY \"items\".\"updated\" DESC";
 
     private static final String SELECT_ITEM_THREAD = "" + "SELECT \"id\", \"node\", \"xml\", \"items\".\"updated\", \"in_reply_to\", \"created\" "
             + "FROM \"items\" "
             + "JOIN \"threads\" ON \"threads\".\"thread_id\"=\"items\".\"thread_id\" "
             + "JOIN \"nodes\" on \"nodes\".\"node_id\" = \"threads\".\"node_id\" "
             + " WHERE \"node\" = ? " + "AND \"item_id\" = ? "
-            + "AND \"threads\".\"updated\" > ? ORDER BY \"threads\".\"updated\" DESC";
+            + "AND \"items\".\"updated\" > ? ORDER BY \"items\".\"updated\" DESC";
 
-    private static final String SELECT_COUNT_ITEM_REPLIES = "" + "SELECT COUNT(\"id\") "
-            + "FROM \"items\""
-            + "JOIN \"nodes\" ON \"nodes\".\"node_id\" = \"items\".\"node_id\" "
-            + " WHERE \"node\" = ? AND \"in_reply_to\" LIKE ? ";
+    private static final String SELECT_COUNT_ITEM_REPLIES = "" + "SELECT COUNT(*) "
+            + "FROM \"items\" "
+            + "JOIN \"threads\" ON \"threads\".\"thread_id\" = \"items\".\"thread_id\" "
+            + "JOIN \"nodes\" ON \"nodes\".\"node_id\" = \"threads\".\"node_id\" "
+            + " WHERE \"node\" = ? AND \"item_id\" = ? "
+            + " AND \"in_reply_to\" IS NOT NULL ";
 
-    private static final String SELECT_COUNT_ITEM_THREAD = "" + "SELECT COUNT(\"id\") "
+    private static final String SELECT_COUNT_ITEM_THREAD = "" + "SELECT COUNT(*) "
             + "FROM \"items\""
-            + "JOIN \"nodes\" ON \"nodes\".\"node_id\" = \"items\".\"node_id\" "
-            + " WHERE \"node\" = ? "
-            + "AND (\"in_reply_to\" LIKE ? OR \"id\" = ?) ";
+            + "JOIN \"threads\" ON \"threads\".\"thread_id\" = \"items\".\"thread_id\" "
+            + "JOIN \"nodes\" ON \"nodes\".\"node_id\" = \"threads\".\"node_id\" "
+            + " WHERE \"node\" = ? AND \"item_id\" = ?";
 
     private static final String SELECT_LOCAL_NODES =
         "SELECT \"nodes\".\"node\", \"config\".\"value\" AS \"value\" " +
@@ -293,9 +297,6 @@ public class Sql92NodeStoreDialect implements NodeStoreSQLDialect {
     private static final String INSERT_THREAD = "INSERT INTO \"threads\" "
             + "(\"node_id\", \"updated\", \"item_id\") "
             + "SELECT \"node_id\", ?, ? FROM \"nodes\" WHERE \"node\" = ?";
-    private static final String UPDATE_THREAD = "UPDATE \"threads\" "
-            + "SET \"updated\" = ? WHERE \"item_id\" = ? "
-            + "AND \"node_id\" = (SELECT \"node_id\" FROM \"nodes\" WHERE \"node\" = ?)";
     private static final String INSERT_ITEM = "INSERT INTO \"items\" ( \"node_id\", \"thread_id\", \"id\", \"updated\", \"xml\", \"in_reply_to\", \"created\") "
             + " SELECT \"nodes\".\"node_id\", \"thread_id\", ?, ?, ?, ?, NOW()"
             + " FROM \"nodes\" JOIN \"threads\" ON \"nodes\".\"node_id\" = \"threads\".\"node_id\""
@@ -306,7 +307,8 @@ public class Sql92NodeStoreDialect implements NodeStoreSQLDialect {
             + " WHERE \"node_id\" = (SELECT \"node_id\" FROM \"nodes\" WHERE \"node\" = ?)"
             + " AND \"id\" = ?";
 
-    private static final String UPDATE_THREAD_PARENT = "UPDATE \"threads\" SET \"updated\"= NOW()"
+    private static final String UPDATE_THREAD = ""
+            + "UPDATE \"threads\" SET \"updated\"= ?"
             + " WHERE \"node_id\" = (SELECT \"node_id\" FROM \"nodes\" WHERE \"node\" = ?)"
             + " AND \"item_id\" = ?";
 
@@ -357,11 +359,14 @@ public class Sql92NodeStoreDialect implements NodeStoreSQLDialect {
             */
     private static final String SELECT_NODE_THREADS = "SELECT \"node\", \"id\", "
             + " \"items\".\"updated\", \"xml\", \"in_reply_to\", \"item_id\", "
-            + " \"threads\".\"updated\", \"created\" FROM \"items\" "
-            + "JOIN \"threads\" ON \"threads\".\"thread_id\" = \"items\".\"thread_id\" "
-            + "JOIN \"nodes\" ON \"nodes\".\"node_id\" = \"threads\".\"node_id\" "
-            + "WHERE \"node\" = ? AND \"threads\".\"updated\" < ? "
-            + "ORDER BY \"threads\".\"updated\" DESC, \"items\".\"updated\"";
+            + " \"t\".\"updated\" AS \"thread_updated\", \"created\" FROM \"items\" "
+            + " JOIN ( "
+            + "  SELECT \"node\", \"thread_id\", \"item_id\", \"updated\" FROM \"threads\" "
+            + "  JOIN \"nodes\" ON \"nodes\".\"node_id\" = \"threads\".\"node_id\" "
+            + "  WHERE \"node\" = ? AND \"updated\" < ? "
+            + "  ORDER BY \"updated\" DESC LIMIT ? "
+            + " ) AS \"t\" ON \"t\".\"thread_id\" = \"items\".\"thread_id\" "
+            + " ORDER BY \"thread_updated\" DESC, \"updated\"";
 
 /*
     private static final String COUNT_NODE_THREADS = "SELECT COUNT(DISTINCT \"thread_id\") "
@@ -393,6 +398,7 @@ public class Sql92NodeStoreDialect implements NodeStoreSQLDialect {
             + "AND \"affiliations\".\"user\" = \"subscriptions\".\"user\" "
             + "WHERE \"subscriptions\".\"user\" = ? AND \"nodes\".\"node\" = ?";
 
+/*
     private static final String SELECT_USER_MEMBERSHIPS_FILTERED_BY_EPHEMERAL = "" + "SELECT " + "CASE WHEN \"subscriptions\".\"node\" != '' "
             + "THEN \"subscriptions\".\"node\" " + "ELSE \"affiliations\".\"node\" " + "END AS \"node\"," + "CASE WHEN \"subscriptions\".\"user\" != '' "
             + "THEN \"subscriptions\".\"user\" " + "ELSE \"affiliations\".\"user\" " + "END AS \"user\", " + "CASE "
@@ -409,7 +415,25 @@ public class Sql92NodeStoreDialect implements NodeStoreSQLDialect {
             + "ON \"subscriptions\".\"node\" = \"affiliations\".\"node\" AND \"affiliations\".\"user\" = \"subscriptions\".\"user\" " + "WHERE "
             + "(\"subscriptions\".\"user\" = ?) "
             + "AND (\"node_config\".\"value\" %equals%)"
-            + "ORDER BY \"updated\" DESC; ";
+            + "ORDER BY \"updated\" DESC; "; */
+    private static final String SELECT_USER_MEMBERSHIPS_FILTERED_BY_EPHEMERAL = "SELECT "
+            + "\"nodes\".\"node\", "
+            + "\"subscriptions\".\"user\", "
+            + "COALESCE(\"subscriptions\".\"listener\", \"subscriptions\".\"user\") AS \"listener\", "
+            + "\"subscriptions\".\"subscription\", "
+            + "COALESCE(\"affiliations\".\"affiliation\", 'none') AS \"affiliation\", "
+            + "\"subscriptions\".\"invited_by\", "
+            + "CASE WHEN \"affiliations\".\"updated\" > \"subscriptions\".\"updated\" "
+            + "THEN \"affiliations\".\"updated\" "
+            + "ELSE \"subscriptions\".\"updated\" " + "END AS \"updated\" "
+            + "FROM \"nodes\" JOIN \"subscriptions\" ON \"subscriptions\".\"node_id\" = \"nodes\".\"node_id\" "
+            + "LEFT JOIN \"affiliations\" ON \"affiliations\".\"node_id\" = \"subscriptions\".\"node_id\" "
+            + "AND \"affiliations\".\"user\" = \"subscriptions\".\"user\" "
+            + "LEFT JOIN \"node_config\" ON \"node_config\".\"node_id\"=\"nodes\".\"node_id\" "
+            + " AND \"node_config\".\"key\" = 'buddycloud#ephemeral' "
+            + "WHERE \"subscriptions\".\"user\" = ? "
+            + "AND COALESCE(\"value\", 'false') = ?"
+            + "AND COALESCE(\"affiliations\".\"affiliation\",'none') != 'outcast'";
 
 /*
     private static final String SELECT_USER_MEMBERSHIPS = "" + "SELECT " + "CASE WHEN \"subscriptions\".\"node\" != '' "
@@ -441,8 +465,10 @@ public class Sql92NodeStoreDialect implements NodeStoreSQLDialect {
             + "FROM \"nodes\" JOIN \"subscriptions\" ON \"subscriptions\".\"node_id\" = \"nodes\".\"node_id\" "
             + "LEFT JOIN \"affiliations\" ON \"affiliations\".\"node_id\" = \"subscriptions\".\"node_id\" "
             + "AND \"affiliations\".\"user\" = \"subscriptions\".\"user\" "
-            + "WHERE \"subscriptions\".\"user\" = ?";
+            + "WHERE \"subscriptions\".\"user\" = ? "
+            + "AND COALESCE(\"affiliations\".\"affiliation\",'none') != 'outcast'";
 
+/*
     private static final String SELECT_USER_MEMBERSHIPS_WITH_CONFIGURATION = "SELECT " +
             "CASE WHEN \"subscriptions\".\"node\" != '' THEN " +
                 "\"subscriptions\".\"node\" " +
@@ -791,11 +817,6 @@ public class Sql92NodeStoreDialect implements NodeStoreSQLDialect {
     }
 
     @Override
-    public String updateThread() {
-        return UPDATE_THREAD;
-    }
-
-    @Override
     public String insertItem() {
         return INSERT_ITEM;
     }
@@ -811,8 +832,8 @@ public class Sql92NodeStoreDialect implements NodeStoreSQLDialect {
     }
 
     @Override
-    public String updateThreadParent() {
-        return UPDATE_THREAD_PARENT;
+    public String updateThread() {
+        return UPDATE_THREAD;
     }
 
     @Override
@@ -893,11 +914,6 @@ public class Sql92NodeStoreDialect implements NodeStoreSQLDialect {
     @Override
     public String selectUserMemberships() {
         return SELECT_USER_MEMBERSHIPS;
-    }
-
-    @Override
-    public String selectUserMembershipsWithConfiguration() {
-        return SELECT_USER_MEMBERSHIPS_WITH_CONFIGURATION;
     }
 
     @Override

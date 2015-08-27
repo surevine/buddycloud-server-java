@@ -51,7 +51,7 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
         dbTester = new DatabaseTester();
         IQTestHandler.readConf();
     }
-    
+
     @Test
     public void testIsCachedJidForCachedJid() throws Exception {
         dbTester.loadData("node_1");
@@ -259,7 +259,7 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
 
         assertEquals("Incorrect item count", 5, result);
     }
-    
+
     @Test
     public void countNodeItemsWithNoReplies() throws Exception {
       dbTester.loadData("node_1");
@@ -369,19 +369,6 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
         assertTrue("Unexpected Node content returned", result.getPayload()
                 .contains(TEST_SERVER1_NODE1_ITEM1_CONTENT));
     }
-    
-    @Test
-    public void canUpdateUpdatedDateOfItem() throws Exception {
-        dbTester.loadData("node_1");
-
-        NodeItem result = store.getNodeItem(TEST_SERVER1_NODE1_ID,
-                TEST_SERVER1_NODE1_ITEM1_ID);
-        Date originalDate = result.getUpdated();
-        store.updateThreadParent(result.getNodeId(), result.getId());
-        result = store.getNodeItem(TEST_SERVER1_NODE1_ID,
-                TEST_SERVER1_NODE1_ITEM1_ID);
-        assertTrue(result.getUpdated().after(originalDate));
-    }
 
     @Test
     public void canGetItemReplies() throws Exception {
@@ -414,7 +401,7 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
         NodeItem testItem3 = new NodeItemImpl(TEST_SERVER1_NODE1_ID, "a8",
                 new Date(100), "<entry>payload</entry>", "a5", new Date());
         NodeItem testItem4 = new NodeItemImpl(TEST_SERVER1_NODE1_ID, "a9",
-                new Date(200), "<entry>payload</entry>", "/full-node-item-id-ref/a5", new Date());
+                new Date(200), "<entry>payload</entry>", "a5", new Date());
         store.addNodeItem(testItem1);
         store.addNodeItem(testItem2);
         store.addNodeItem(testItem3);
@@ -449,12 +436,12 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
                 new Date(), "<entry>payload</entry>", "a5", new Date());
         Thread.sleep(100);
         NodeItem testItem4 = new NodeItemImpl(TEST_SERVER1_NODE1_ID, "a9",
-                new Date(), "<entry>payload</entry>", "/full-node-item-id-ref/a5", new Date());
+                new Date(), "<entry>payload</entry>", "a5", new Date());
         store.addNodeItem(testItem1);
         store.addNodeItem(testItem2);
         store.addNodeItem(testItem3);
         store.addNodeItem(testItem4);
-        
+
         ClosableIteratorImpl<NodeItem> items = store.getNodeItemReplies(
                 TEST_SERVER1_NODE1_ID, "a5", "a8", false, 4);
 
@@ -474,8 +461,26 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
     public void canGetCountOfItemReplies() throws Exception {
         dbTester.loadData("node_1");
         NodeItem testItem = new NodeItemImpl(TEST_SERVER1_NODE1_ID, "a6",
-                new Date(), "<entry>payload</entry>", "/full-node-item-id-ref/a5", new Date());
+                new Date(), "<entry>payload</entry>", "a5", new Date());
         store.addNodeItem(testItem);
+        dbTester.assertions().assertTableContains("items",
+                new HashMap<String, Object>() {
+                    {
+                        put("in_reply_to", "a5");
+                    }
+                }, TEST_SERVER1_NODE1_ID, 1);
+        dbTester.assertions().assertTableContains("threads",
+                new HashMap<String, Object>() {
+                    {
+                        put("item_id", "a5");
+                    }
+                }, TEST_SERVER1_NODE1_ID, 1);
+        dbTester.assertions().assertTableContains("threads",
+                new HashMap<String, Object>() {
+                    {
+                        put("item_id", "a6");
+                    }
+                }, TEST_SERVER1_NODE1_ID, 0);
 
         int items = store.getCountNodeItemReplies(TEST_SERVER1_NODE1_ID, "a5");
         assertEquals(1, items);
@@ -485,7 +490,7 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
     public void canGetItemThread() throws Exception {
         dbTester.loadData("node_1");
         NodeItem testItem = new NodeItemImpl(TEST_SERVER1_NODE1_ID, "a6",
-                new Date(), "<entry>payload</entry>", "/full-node-item-id-ref/a5", new Date());
+                new Date(), "<entry>payload</entry>", "a5", new Date());
         store.addNodeItem(testItem);
 
         ClosableIteratorImpl<NodeItem> items = store.getNodeItemThread(
@@ -501,7 +506,7 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
         assertEquals(2, count);
         assertSameNodeItem(item, testItem);
     }
-    
+
 
     @Test
     public void canGetItemThreadWithResultSetManagement() throws Exception {
@@ -512,7 +517,7 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
                 new Date(20), "<entry>payload</entry>", "a100", new Date());
         NodeItem testItem2 = new NodeItemImpl(TEST_SERVER1_NODE1_ID, "a7",
                 new Date(40), "<entry>payload</entry>", "a100", new Date());
-        NodeItem testItem3 = new NodeItemImpl(TEST_SERVER1_NODE1_ID, "/full-node-item-id-ref/a8",
+        NodeItem testItem3 = new NodeItemImpl(TEST_SERVER1_NODE1_ID, "a8",
                 new Date(80), "<entry>payload</entry>", "a100", new Date());
         NodeItem testItem4 = new NodeItemImpl(TEST_SERVER1_NODE1_ID, "a9",
                 new Date(160), "<entry>payload</entry>", "a100", new Date());
@@ -541,7 +546,7 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
     public void canGetCountOfItemThread() throws Exception {
         dbTester.loadData("node_1");
         NodeItem testItem = new NodeItemImpl(TEST_SERVER1_NODE1_ID, "a6",
-                new Date(), "<entry>payload</entry>", "/full-node-item-id-ref/a5", new Date());
+                new Date(), "<entry>payload</entry>", "a5", new Date());
         store.addNodeItem(testItem);
 
         int items = store.getCountNodeThread(TEST_SERVER1_NODE1_ID, "a5");
@@ -563,12 +568,11 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
         dbTester.assertions().assertTableContains("items",
                 new HashMap<String, Object>() {
                     {
-                        put("node", TEST_SERVER1_NODE1_ID);
                         put("id", itemId);
                         put("updated", updated);
                         put("xml", testContent);
                     }
-                });
+                }, TEST_SERVER1_NODE1_ID);
     }
 
     @Test
@@ -587,13 +591,12 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
         dbTester.assertions().assertTableContains("items",
                 new HashMap<String, Object>() {
                     {
-                        put("node", TEST_SERVER1_NODE1_ID);
                         put("id", itemId);
                         put("updated", updated);
                         put("xml", testContent);
                         put("in_reply_to", inReplyTo);
                     }
-                });
+                }, TEST_SERVER1_NODE1_ID);
     }
 
     @Test(expected = NodeStoreException.class)
@@ -622,12 +625,11 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
         dbTester.assertions().assertTableContains("items",
                 new HashMap<String, Object>() {
                     {
-                        put("node", TEST_SERVER1_NODE1_ID);
                         put("id", TEST_SERVER1_NODE1_ITEM1_ID);
                         put("updated", updated);
                         put("xml", testContent);
                     }
-                });
+                }, TEST_SERVER1_NODE1_ID);
     }
 
     @Test(expected = ItemNotFoundException.class)
@@ -654,10 +656,9 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
         dbTester.assertions().assertTableContains("items",
                 new HashMap<String, Object>() {
                     {
-                        put("node", TEST_SERVER1_NODE1_ID);
                         put("id", TEST_SERVER1_NODE1_ITEM1_ID);
                     }
-                }, 0);
+                }, TEST_SERVER1_NODE1_ID, 0);
     }
 
     @Test(expected = ItemNotFoundException.class)
@@ -674,13 +675,22 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
         dbTester.loadData("node_1");
         dbTester.loadData("node_2");
         dbTester.loadData("advertise_nodes");
-        
+
         ArrayList<String> nodeList = store.getNodeList();
-        
+
         assertEquals(6, nodeList.size());
-        
-        Assert.assertEquals("/user/advertised@server1/posts", nodeList.get(0));
-        Assert.assertEquals("/user/advertised@server2/posts", nodeList.get(1));  
+        boolean foundOne = false;
+        boolean foundTwo = false;
+
+        for (String nodeName : nodeList) {
+          if (nodeName.equals("/user/advertised@server1/posts")) {
+            foundOne = true;
+          } else if (nodeName.equals("/user/advertised@server2/posts")) {
+            foundTwo = true;
+          }
+        }
+
+        assertTrue(foundOne && foundTwo);
     }
 
     @Test
@@ -702,14 +712,14 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
         store.purgeNodeItems(TEST_SERVER1_NODE2_ID); // <--- NODE **2**
         assertEquals(itemCount, store.countNodeItems(TEST_SERVER1_NODE1_ID, false));
     }
-    
+
     @Test
     public void testGetIsCachedSubscriptionNodeReturnsFalseWhereThereAreNoSubscriptions()
             throws Exception {
         boolean cached = store.nodeHasSubscriptions(TEST_SERVER1_NODE1_ID);
         assertEquals(false, cached);
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void testFirehoseItemsThrowsExceptionIfNegativeLimitRequested()
             throws Exception {
@@ -720,10 +730,29 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
     public void testCanGetFirehoseItems() throws Exception {
         dbTester.loadData("node_1");
         dbTester.loadData("node_2");
+        //dbTester.loadData("node_3");
         store.setNodeConfValue(TEST_SERVER1_NODE1_ID, "pubsub#access_model",
                 "open");
         store.setNodeConfValue(TEST_SERVER1_NODE2_ID, "pubsub#access_model",
                 "open");
+        dbTester.assertions().assertTableContains("threads",
+                new HashMap<String, Object>() {
+                    {
+                        put("item_id", "node2:1");
+                    }
+                }, TEST_SERVER1_NODE2_ID);
+        dbTester.assertions().assertTableContains("items",
+                new HashMap<String, Object>() {
+                    {
+                        put("id", "node2:1");
+                    }
+                });
+        dbTester.assertions().assertTableContains("items",
+                new HashMap<String, Object>() {
+                    {
+                        put("id", "node2:1");
+                    }
+                }, TEST_SERVER1_NODE2_ID);
         // Add a remote node - don't expect to see
         HashMap<String, String> remoteNodeConf = new HashMap<String, String>();
         remoteNodeConf.put("pubsub#access_model", "open");
@@ -737,7 +766,7 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
         store.addNodeItem(new NodeItemImpl(TEST_SERVER1_NODE3_ID, "1111",
                 new Date(), "<entry/>"));
         Thread.sleep(4);
-        CloseableIterator<NodeItem> items = store.getFirehose(50, null, 
+        CloseableIterator<NodeItem> items = store.getFirehose(50, null,
                 false, TEST_SERVER1_HOSTNAME);
         NodeItem item = null;
         int count = 0;
@@ -770,7 +799,7 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
         store.addRemoteNode(TEST_SERVER2_NODE1_ID);
         store.setNodeConf(TEST_SERVER2_NODE1_ID, remoteNodeConf);
 
-        CloseableIterator<NodeItem> items = store.getFirehose(50, null, 
+        CloseableIterator<NodeItem> items = store.getFirehose(50, null,
                 true, TEST_SERVER1_HOSTNAME);
         NodeItem item = null;
         int count = 0;
@@ -804,7 +833,7 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
         store.addRemoteNode(TEST_SERVER2_NODE1_ID);
         store.setNodeConf(TEST_SERVER2_NODE1_ID, remoteNodeConf);
 
-        CloseableIterator<NodeItem> items = store.getFirehose(2, "a3", 
+        CloseableIterator<NodeItem> items = store.getFirehose(2, "a3",
                 false, TEST_SERVER1_HOSTNAME);
         NodeItem item1 = items.next();
         NodeItem item2 = items.next();
@@ -861,7 +890,7 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
         store.setNodeConf(TEST_SERVER2_NODE1_ID, remoteNodeConf);
         assertEquals(7, store.getFirehoseItemCount(true, TEST_SERVER1_HOSTNAME));
     }
-    
+
     @Test
     public void testOnlySeeSearchResultsFromSubscribedPostsNodes() throws Exception {
         dbTester.loadData("search-test-1");
@@ -877,7 +906,7 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
         }
         assertEquals(1, counter);
     }
-    
+
     @Test
     public void testOnlySeeSearchResultsFromRequestedAuthor() throws Exception {
         dbTester.loadData("search-test-2");
@@ -899,15 +928,15 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
         }
         assertEquals(2, counter);
     }
-    
+
     @Test
     public void testOnlySeeSearchResultsWithSpecificContent() throws Exception {
         dbTester.loadData("search-test-3");
-        
+
         ArrayList<String> searchTerms = new ArrayList<String>();
         searchTerms.add("keyword");
         searchTerms.add("post");
-        
+
         CloseableIterator<NodeItem> items = store.performSearch(
             new JID("user1@server1"), searchTerms, new JID("author@server1"), 1, 25
         );
@@ -926,15 +955,15 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
         }
         assertEquals(2, counter);
     }
-    
+
     @Test
     public void testOnlySeeSearchResultsWithSpecificContentAndAuthor() throws Exception {
         dbTester.loadData("search-test-4");
-        
+
         ArrayList<String> searchTerms = new ArrayList<String>();
         searchTerms.add("keyword");
         searchTerms.add("post");
-        
+
         CloseableIterator<NodeItem> items = store.performSearch(
             new JID("user1@server1"), searchTerms, new JID("author@server1"), 1, 25
         );
@@ -1109,21 +1138,21 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
     @Test
     public void testNodeOwnersReturnsExpectedList() throws Exception {
         dbTester.loadData("node_1");
-        
+
         store.addUserSubscription(new NodeSubscriptionImpl(TEST_SERVER1_NODE1_ID, TEST_SERVER1_USER2_JID, Subscriptions.subscribed, null));
         store.setUserAffiliation(TEST_SERVER1_NODE1_ID, TEST_SERVER1_USER2_JID, Affiliations.owner);
-        
+
         assertEquals(2, store.getNodeOwners(TEST_SERVER1_NODE1_ID).size());
         assertEquals(TEST_SERVER1_USER1_JID, store.getNodeOwners(TEST_SERVER1_NODE1_ID).get(0));
         assertEquals(TEST_SERVER1_USER2_JID, store.getNodeOwners(TEST_SERVER1_NODE1_ID).get(1));
     }
-    
+
     @Test
     public void notPreviousRatingByUserReturnsFalse() throws Exception {
 
         String node = "/users/romeo@capulet.lit/posts";
         store.addRemoteNode(node);
-        
+
         String content = "" +
                 "<entry xmlns='http://www.w3.org/2005/Atom' xmlns:thr='http://purl.org/syndication/thread/1.0' " +
                         "xmlns:activity='http://activitystrea.ms/spec/1.0/'>" +
@@ -1164,23 +1193,23 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
                            "</activity:target>" +
                            "<review:rating>5.0</review:rating>" +
                        "</entry>";
-        
+
         NodeItem item1 = new NodeItemImpl(node, "6", new Date(), content);
         store.addNodeItem(item1);
         NodeItem item2 = new NodeItemImpl(node, "7", new Date(), alternativeContent);
         store.addNodeItem(item2);
-        
+
         Assert.assertFalse(
             store.userHasRatedPost(node, new JID("romeo@capulet.lit"), new GlobalItemIDImpl(new JID("channels.capulet.lit"), node, "6"))
         );
     }
-    
+
     @Test
     public void previousRatingByUserReturnsTrue() throws Exception {
 
         String node = "/users/romeo@capulet.lit/posts";
         store.addRemoteNode(node);
-        
+
         String content = "" +
                 "<entry xmlns='http://www.w3.org/2005/Atom' xmlns:thr='http://purl.org/syndication/thread/1.0' " +
                         "xmlns:activity='http://activitystrea.ms/spec/1.0/'>" +
@@ -1221,12 +1250,12 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
                            "</activity:target>" +
                            "<review:rating>5.0</review:rating>" +
                        "</entry>";
-        
+
         NodeItem item1 = new NodeItemImpl(node, "6", new Date(), content);
         store.addNodeItem(item1);
         NodeItem item2 = new NodeItemImpl(node, "7", new Date(), alternativeContent);
         store.addNodeItem(item2);
-        
+
         Assert.assertTrue(
             store.userHasRatedPost(node, new JID("romeo@capulet.lit"), new GlobalItemIDImpl(new JID("channels.capulet.lit"), node, "5"))
         );

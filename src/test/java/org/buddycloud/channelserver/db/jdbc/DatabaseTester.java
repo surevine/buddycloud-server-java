@@ -66,8 +66,10 @@ public class DatabaseTester {
               sql.append(" JOIN \"nodes\" ON \"nodes\".\"node_id\" = \"");
               sql.append(tableName);
               sql.append("\".\"node_id\" ");
+              sql.append("WHERE \"nodes\".\"node\" = ?");
+            } else {
+              sql.append("WHERE TRUE");
             }
-            sql.append("WHERE TRUE");
 
             for (Entry<String, Object> field : values.entrySet()) {
                 valueList.add(field.getValue());
@@ -79,8 +81,13 @@ public class DatabaseTester {
             sql.append(";");
 
             PreparedStatement stmt = conn.prepareStatement(sql.toString());
+            int offset = 1;
+            if (nodeName != null) {
+              stmt.setString(1, nodeName);
+              offset = 2;
+            }
             for (int i = 0; i < valueList.size(); ++i) {
-                stmt.setObject(i + 1, valueList.get(i));
+                stmt.setObject(i + offset, valueList.get(i));
             }
 
             ResultSet rs = stmt.executeQuery();
