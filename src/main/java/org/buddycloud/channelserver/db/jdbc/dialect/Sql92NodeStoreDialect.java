@@ -318,7 +318,9 @@ public class Sql92NodeStoreDialect implements NodeStoreSQLDialect {
 
     private static final String SELECT_SUBSCRIPTION_LISTENERS_FOR_NODE =
             "SELECT DISTINCT ON (\"listener\") \"listener\", \"node\", \"subscription\", \"updated\""
-                    + " FROM \"subscriptions\" WHERE \"node\" = ? AND \"subscription\" = 'subscribed' ORDER BY \"listener\", \"updated\"";
+            + " FROM \"subscriptions\""
+            + " JOIN \"nodes\" ON \"nodes\".\"node_id\" = \"subscriptions\".\"node_id\" "
+            + " WHERE \"node\" = ? AND \"subscription\" = 'subscribed' ORDER BY \"listener\", \"updated\"";
 
     private static final String SELECT_SUBSCRIPTION_LISTENERS = "SELECT DISTINCT ON (\"listener\") \"listener\", \"node\", \"subscription\", \"updated\""
             + " FROM \"subscriptions\" "
