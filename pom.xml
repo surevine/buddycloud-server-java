@@ -8,9 +8,9 @@
     <name>Buddycloud Java Server</name>
 
     <scm>
-        <connection>scm:git:git@github.buddycloud/buddycloud-server-java.git</connection>
-        <developerConnection>scm:git:git@github.com:buddycloud/buddycloud-server-java.git</developerConnection>
-        <url>https://github.com/buddycloud/buddycloud-server-java</url>
+        <connection>scm:git:git@github.surevine/buddycloud-server-java.git</connection>
+        <developerConnection>scm:git:git@github.com:surevine/buddycloud-server-java.git</developerConnection>
+        <url>https://github.com/surevine/buddycloud-server-java</url>
     </scm>
 
     <issueManagement>
@@ -346,6 +346,14 @@
                      </execution>
                  </executions>
              </plugin>
+             <plugin>
+                 <groupId>org.apache.maven.plugins</groupId>
+                 <artifactId>maven-release-plugin</artifactId>
+                 <version>2.5.2</version>
+                 <configuration>
+                     <tagNameFormat>v@{project.version}</tagNameFormat>
+                 </configuration>
+            </plugin>
         </plugins>
     </build>
 
