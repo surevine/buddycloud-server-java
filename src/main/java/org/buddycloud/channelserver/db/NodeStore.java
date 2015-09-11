@@ -415,18 +415,12 @@ public interface NodeStore {
     void purgeNodeItems(String nodeId) throws NodeStoreException;
 
     /**
-     * Retrieves a list of nodes
-     *
-     * @throws NodeStoreException
-     */
-    ArrayList<String> getNodeList() throws NodeStoreException;
-
-    /**
      * Retrieves a list of local nodes
      *
      * @throws NodeStoreException
+     * @param user
      */
-    List<String> getLocalNodesList() throws NodeStoreException;
+    List<String> getLocalNodesList(JID user) throws NodeStoreException;
 
     /**
      * Retrieves a list of remote nodes

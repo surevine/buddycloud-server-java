@@ -91,13 +91,20 @@ public class UnregisterSet implements PacketProcessor<IQ> {
             t = channelManager.beginTransaction();
             
             List<Packet> notifications = new LinkedList<Packet>();
-            Set<String> remoteDomains = getRemoteDomains();
+            Set<String> remoteDomains = new HashSet<String>(); // Populated by walking the memberships.
             
             ResultSet<NodeMembership> userMemberships = channelManager.getUserMemberships(actorJID);
             for (NodeMembership userMembership : userMemberships) {
                 String nodeId = userMembership.getNodeId();
+                try {
+                    if (!Configuration.getInstance().isLocalNode(nodeId)) {
+                        remoteDomains.add(new JID(nodeId.split("/")[2]).getDomain());
+                    }
+                } catch (IllegalArgumentException e) {
+                    // Ignore bad formatted nodes
+                }
                 if (isPersonal(nodeId) || isSingleOwner(nodeId, actorJID)) {
-                    channelManager.deleteNode(nodeId);
+                    channelManager.deleteNode(nodeId); // ATTN TODO
                     if (Configuration.getInstance().isLocalNode(nodeId)) {
                         addDeleteNodeNotifications(nodeId, notifications);
                     }
@@ -115,7 +122,7 @@ public class UnregisterSet implements PacketProcessor<IQ> {
                 }
             }
             
-            channelManager.deleteUserItems(actorJID);
+            channelManager.deleteUserItems(actorJID); // ATTN TODO
             channelManager.deleteUserSubscriptions(actorJID);
             channelManager.deleteUserAffiliations(actorJID);
             
@@ -150,21 +157,6 @@ public class UnregisterSet implements PacketProcessor<IQ> {
             actor.addText(request.getFrom().toBareJID());
             outQueue.put(remoteRequest);
         }
-    }
-
-    private Set<String> getRemoteDomains() throws NodeStoreException {
-        ArrayList<String> nodeList = channelManager.getNodeList();
-        Set<String> remoteDomains = new HashSet<String>();
-        for (String node : nodeList) {
-            try {
-                if (!Configuration.getInstance().isLocalNode(node)) {
-                    remoteDomains.add(new JID(node.split("/")[2]).getDomain());
-                }
-            } catch (IllegalArgumentException e) {
-                // Ignore bad formatted nodes
-            }
-        }
-        return remoteDomains;
     }
 
     private void addUnsubscribeFromNodeNotifications(JID userJid,

@@ -234,13 +234,28 @@ public class Sql92NodeStoreDialect implements NodeStoreSQLDialect {
             + " WHERE \"node\" = ? AND \"item_id\" = ?";
 
     private static final String SELECT_LOCAL_NODES =
-        "SELECT \"nodes\".\"node\", \"config\".\"value\" AS \"value\" " +
-        "FROM \"nodes\" " +
-        "LEFT JOIN \"node_config\" AS \"config\" " +
-        "ON \"config\".\"node_id\" = \"nodes\".\"node_id\" AND " +
-        "\"config\".\"key\" = 'buddycloud#advertise_node' " +
-        "WHERE \"nodes\".\"node\" ~ ? AND " +
-        "(\"value\" = 'true' OR \"value\" IS NULL);";
+            "SELECT \"nodes\".\"node\", \"config\".\"value\" AS \"value\" " +
+            "FROM \"nodes\" " +
+            "LEFT JOIN \"node_config\" AS \"config\" " +
+            "ON \"config\".\"node_id\" = \"nodes\".\"node_id\" AND " +
+            "\"config\".\"key\" = 'buddycloud#advertise_node' " +
+            "LEFT JOIN \"node_config\" AS \"am\" " +
+            "ON \"am\".\"node_id\" = \"nodes\".\"node_id\" AND " +
+            "\"am\".\"key\" = 'pubsub#access_model' " +
+            "LEFT JOIN \"affiliations\" " +
+            " ON \"affiliations\".\"node_id\" = \"nodes\".\"node_id\" AND " +
+            " \"affiliations\".\"user\" = ? " +
+            "WHERE \"nodes\".\"node\" ~ ? AND " +
+            "COALESCE(\"affiliations\".\"affiliation\", 'none') != 'outcast' AND " + // Never list to banned users.
+            "(" +
+            "(\"config\".\"value\" = 'true' OR \"config\".\"value\" IS NULL) " + // Always advertise
+            "OR (\"config\".\"value\" = 'locally' AND 1 = ?) " + // Always advertise local nodes locally.
+            "OR (\"config\".\"value\" = 'joinable' AND ( " + // Only if joinable
+                    " \"am\".\"value\" = 'open' OR " +  // Anyone could join.
+                    " (\"am\".\"value\" = 'authorize' AND \"affiliation\" IS NOT NULL) OR " + // Only if invited
+                    " (\"am\".\"value\" = 'local' AND (1 = ? OR \"affiliation\" IS NOT NULL))" + // Local / invited
+                "))" +
+            ")";
 
     private static final String SELECT_REMOTE_NODES =
             "SELECT \"nodes\".\"node\", \"config\".\"value\" AS \"value\" " +
@@ -249,7 +264,7 @@ public class Sql92NodeStoreDialect implements NodeStoreSQLDialect {
             "ON \"config\".\"node_id\" = \"nodes\".\"node_id\" AND " +
             "\"config\".\"key\" = 'buddycloud#advertise_node' " +
             "WHERE \"nodes\".\"node\" !~ ? AND " +
-            "(\"value\" = 'true' OR \"value\" IS NULL);";
+            "(\"value\" = 'true' OR \"value\" IS NULL)";
 
     private static final String SELECT_ITEMS_FROM_LOCAL_NODES_BEFORE_DATE =
             "SELECT \"nodes\".\"node\", \"id\", \"items\".\"updated\", \"xml\", \"in_reply_to\", \"created\" " +
@@ -328,14 +343,6 @@ public class Sql92NodeStoreDialect implements NodeStoreSQLDialect {
             + "ORDER BY \"listener\", \"updated\"";
 
     private static final String DELETE_NODE = "DELETE FROM \"nodes\" WHERE \"node\" = ?;";
-
-    private static final String SELECT_NODE_LIST =
-        "SELECT \"nodes\".\"node\", \"config\".\"value\" AS \"value\" " +
-        "FROM \"nodes\" " +
-        "LEFT JOIN \"node_config\" AS \"config\" " +
-        "ON \"config\".\"node_id\" = \"nodes\".\"node_id\" AND " +
-        "\"config\".\"key\" = 'buddycloud#advertise_node' " +
-        "WHERE (\"value\" = 'true' OR \"value\" IS NULL);";
 
     private static final String DELETE_ITEMS = "DELETE FROM \"items\" WHERE \"node_id\" = (SELECT \"node_id\" FROM \"nodes\" WHERE \"node\" = ?)";
 
@@ -856,11 +863,6 @@ public class Sql92NodeStoreDialect implements NodeStoreSQLDialect {
     @Override
     public String deleteItems() {
         return DELETE_ITEMS;
-    }
-
-    @Override
-    public String selectNodeList() {
-        return SELECT_NODE_LIST;
     }
 
     @Override

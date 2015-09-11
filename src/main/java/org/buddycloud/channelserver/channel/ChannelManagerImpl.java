@@ -17,7 +17,6 @@ import org.buddycloud.channelserver.pubsub.model.GlobalItemID;
 import org.buddycloud.channelserver.pubsub.model.NodeAffiliation;
 import org.buddycloud.channelserver.pubsub.model.NodeItem;
 import org.buddycloud.channelserver.pubsub.model.NodeMembership;
-import org.buddycloud.channelserver.pubsub.model.NodeMembershipWithConfiguration;
 import org.buddycloud.channelserver.pubsub.model.NodeSubscription;
 import org.buddycloud.channelserver.pubsub.model.NodeThread;
 import org.xmpp.packet.JID;
@@ -277,11 +276,6 @@ public class ChannelManagerImpl implements ChannelManager {
   }
 
   @Override
-  public ArrayList<String> getNodeList() throws NodeStoreException {
-    return nodeStore.getNodeList();
-  }
-
-  @Override
   public CloseableIterator<NodeItem> getRecentItems(JID user, Date since, int maxPerNode,
       int limit, GlobalItemID afterItemId, String node, boolean parentOnly)
       throws NodeStoreException {
@@ -413,8 +407,8 @@ public class ChannelManagerImpl implements ChannelManager {
   }
 
   @Override
-  public List<String> getLocalNodesList() throws NodeStoreException {
-    return nodeStore.getLocalNodesList();
+  public List<String> getLocalNodesList(JID user) throws NodeStoreException {
+    return nodeStore.getLocalNodesList(user);
   }
 
   @Override

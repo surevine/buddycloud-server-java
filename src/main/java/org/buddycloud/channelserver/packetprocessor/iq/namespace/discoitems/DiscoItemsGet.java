@@ -52,7 +52,7 @@ public class DiscoItemsGet implements PacketProcessor<IQ> {
     }
 
     private void addItems() throws NodeStoreException {
-        List<String> nodes = channelManager.getLocalNodesList();
+        List<String> nodes = channelManager.getLocalNodesList(response.getTo());
 
         String jid = Configuration.getInstance()
             .getProperty(Configuration.CONFIGURATION_SERVER_CHANNELS_DOMAIN);

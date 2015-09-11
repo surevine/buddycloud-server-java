@@ -32,14 +32,12 @@ import org.buddycloud.channelserver.pubsub.model.GlobalItemID;
 import org.buddycloud.channelserver.pubsub.model.NodeAffiliation;
 import org.buddycloud.channelserver.pubsub.model.NodeItem;
 import org.buddycloud.channelserver.pubsub.model.NodeMembership;
-import org.buddycloud.channelserver.pubsub.model.NodeMembershipWithConfiguration;
 import org.buddycloud.channelserver.pubsub.model.NodeSubscription;
 import org.buddycloud.channelserver.pubsub.model.NodeThread;
 import org.buddycloud.channelserver.pubsub.model.impl.GlobalItemIDImpl;
 import org.buddycloud.channelserver.pubsub.model.impl.NodeAffiliationImpl;
 import org.buddycloud.channelserver.pubsub.model.impl.NodeItemImpl;
 import org.buddycloud.channelserver.pubsub.model.impl.NodeMembershipImpl;
-import org.buddycloud.channelserver.pubsub.model.impl.NodeMembershipWithConfigurationImpl;
 import org.buddycloud.channelserver.pubsub.model.impl.NodeSubscriptionImpl;
 import org.buddycloud.channelserver.pubsub.model.impl.NodeThreadImpl;
 import org.buddycloud.channelserver.pubsub.subscription.Subscriptions;
@@ -644,16 +642,45 @@ public class JDBCNodeStore implements NodeStore {
         return domainRegex;
     }
 
+    private static boolean isJidLocal(JID user) {
+        String dom = user.getDomain();
+        String serverDomain = Configuration.getInstance().getServerDomain();
+        String serverTopicsDomain = Configuration.getInstance().getServerTopicsDomain();
+        if (serverDomain != null) {
+            if (dom.equals(serverDomain)) {
+                return true;
+            }
+        }
+        if (serverTopicsDomain != null) {
+            if (dom.equals(serverTopicsDomain)) {
+                return true;
+            }
+        }
+        for (String localDomain : LocalDomainChecker.getLocalDomains(Configuration.getInstance())) {
+            if (dom.equals(localDomain)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static String getDomainRegex(String localDomains) {
         return ".*@(" + localDomains + ")\\/.*";
     }
 
     @Override
-    public List<String> getLocalNodesList() throws NodeStoreException {
+    public List<String> getLocalNodesList(JID user) throws NodeStoreException {
         PreparedStatement stmt = null;
         try {
+            int local = 0;
+            if (isJidLocal(user)) {
+                local = 1;
+            }
             stmt = conn.prepareStatement(dialect.selectLocalNodes());
-            stmt.setString(1, getLocalDomainRegex());
+            stmt.setString(1, user.toBareJID());
+            stmt.setString(2, getLocalDomainRegex());
+            stmt.setInt(3, local);
+            stmt.setInt(4, local);
             java.sql.ResultSet rs = stmt.executeQuery();
             List<String> result = new ArrayList<String>();
             while (rs.next()) {
@@ -1498,29 +1525,6 @@ public class JDBCNodeStore implements NodeStore {
     }
 
     @Override
-    public ArrayList<String> getNodeList() throws NodeStoreException {
-
-        PreparedStatement stmt = null;
-
-        try {
-            stmt = conn.prepareStatement(dialect.selectNodeList());
-
-            java.sql.ResultSet rs = stmt.executeQuery();
-
-            ArrayList<String> result = new ArrayList<String>();
-
-            while (rs.next()) {
-                result.add(rs.getString(1));
-            }
-            return result;
-        } catch (SQLException e) {
-            throw new NodeStoreException(e);
-        } finally {
-            close(stmt); // Will implicitly close the resultset if required
-        }
-    }
-
-    @Override
     public boolean isCachedNode(String nodeId) throws NodeStoreException {
         return ((this.countNodeItems(nodeId, false) > 0) && (true == this.isCachedNodeConfig(nodeId)));
     }
@@ -1924,8 +1928,6 @@ public class JDBCNodeStore implements NodeStore {
         String countSubscriptionsToNodeForOwner();
 
         String deleteItems();
-
-        String selectNodeList();
 
         String deleteNode();
 

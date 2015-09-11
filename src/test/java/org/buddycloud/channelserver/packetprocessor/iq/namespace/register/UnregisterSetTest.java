@@ -193,6 +193,9 @@ public class UnregisterSetTest extends IQTestHandler {
         IQ response = (IQ) queue.poll();
         Assert.assertNull(response.getError());
         Assert.assertEquals(Type.result, response.getType());
+        IQ remote_unreg = (IQ)queue.poll();
+        Assert.assertNull(remote_unreg.getError());
+        Assert.assertEquals(Type.set, remote_unreg.getType()); // The remote unregister.
 
         Assert.assertEquals(2, queue.size());
     }
@@ -352,16 +355,31 @@ public class UnregisterSetTest extends IQTestHandler {
 
         recordEmptyMockResponses(actorJid);
 
-        String remoteNode = "/user/remotenode@remotedomain.com/posts";
-        ArrayList<String> remoteNodes = new ArrayList<String>();
-        remoteNodes.add(remoteNode);
-        Mockito.when(channelManager.getNodeList()).thenReturn(remoteNodes);
-
         Configuration.getInstance().remove(
                 Configuration.CONFIGURATION_LOCAL_DOMAIN_CHECKER);
         Configuration.getInstance().putProperty(
                 Configuration.CONFIGURATION_SERVER_CHANNELS_DOMAIN, "shakespeare.lit");
-        
+        String topicNode = "/user/topic@poe.lit/posts";
+
+        // Record affiliations
+        NodeMembership membership = new NodeMembershipImpl(topicNode,
+                actorJid, actorJid, Subscriptions.subscribed, Affiliations.publisher, null, new Date());
+
+        List<NodeMembership> memberships = new LinkedList<NodeMembership>();
+        memberships.add(membership);
+
+        Mockito.when(channelManager.getUserMemberships(actorJid)).thenReturn(
+                new ResultSetImpl<NodeMembership>(memberships));
+
+        Mockito.when(
+                channelManager.getNodeMemberships(Mockito.eq(topicNode))).thenReturn(
+                new ResultSetImpl<NodeMembership>(memberships));
+
+        // Record channel type
+        Mockito.when(
+                channelManager.getNodeConfValue(topicNode, Conf.CHANNEL_TYPE))
+                .thenReturn("topic");
+
         unregisterSet.process(request);
 
         IQ response = (IQ) queue.poll();
@@ -369,7 +387,7 @@ public class UnregisterSetTest extends IQTestHandler {
         Assert.assertEquals(Type.result, response.getType());
         Assert.assertFalse(queue.isEmpty());
 
-        Assert.assertEquals(1, queue.size());
+        Assert.assertEquals(3, queue.size());
 
         Packet remoteRequest = queue.poll();
         Element removeEl = remoteRequest.getElement().element("query")
@@ -377,5 +395,6 @@ public class UnregisterSetTest extends IQTestHandler {
         Assert.assertNotNull(removeEl);
         Element actorEl = removeEl.element("actor");
         Assert.assertEquals(actorJid.toBareJID(), actorEl.getText());
+        Assert.assertEquals("poe.lit", remoteRequest.getTo().toString());
     }
 }
