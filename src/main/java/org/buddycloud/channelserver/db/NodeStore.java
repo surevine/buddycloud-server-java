@@ -25,7 +25,7 @@ import org.xmpp.resultsetmanagement.ResultSet;
 public interface NodeStore {
     /**
      * Create a new node.
-     * 
+     *
      * @param owner the node owner.
      * @param nodeId the node reference.
      * @param nodeConf a configuration map for the node.
@@ -35,7 +35,7 @@ public interface NodeStore {
 
     /**
      * Delete a node
-     * 
+     *
      * @param nodeId the node reference
      * @throws NodeStoreException
      */
@@ -43,7 +43,7 @@ public interface NodeStore {
 
     /**
      * Add a remote node into the database
-     * 
+     *
      * @param nodeId the node reference
      * @throws NodeStoreException if the operation could not be completed.
      */
@@ -51,7 +51,7 @@ public interface NodeStore {
 
     /**
      * Sets a single configuration option on the node
-     * 
+     *
      * @param nodeId the node reference
      * @param key the configuration option key
      * @param value the configuration option value
@@ -61,7 +61,7 @@ public interface NodeStore {
 
     /**
      * Replaces the existing node configuration.
-     * 
+     *
      * @param nodeId the node id
      * @param conf the configuration to replace the current configuration with.
      * @throws NodeStoreException
@@ -70,7 +70,7 @@ public interface NodeStore {
 
     /**
      * Retrieves a single node configuration parameter.
-     * 
+     *
      * @param nodeId the node id.
      * @param key the configuration key.
      * @return the configuration value, or null if not found.
@@ -80,7 +80,7 @@ public interface NodeStore {
 
     /**
      * Delete the configuration for a node
-     * 
+     *
      * @param nodeId the node id.
      * @throws NodeStoreException
      */
@@ -88,7 +88,7 @@ public interface NodeStore {
 
     /**
      * Retrieves a map of all all the configuration properties for the node.
-     * 
+     *
      * @param nodeId the node id.
      * @return the node configuration.
      * @throws NodeStoreException
@@ -97,7 +97,7 @@ public interface NodeStore {
 
     /**
      * Determine whether a node exists within the data store.
-     * 
+     *
      * @param nodeId the node reference.
      * @return <code>true</code> if the node exists, <code>false</code> otherwise.
      * @throws NodeStoreException if the operation could not be completed.
@@ -107,7 +107,7 @@ public interface NodeStore {
     /**
      * Sets a user's affiliation with a node. If the user doesn't already have an affiliation with
      * the node then one will be added.
-     * 
+     *
      * @param nodeId the node reference.
      * @param user the user.
      * @param affiliation the type of affiliation.
@@ -118,7 +118,7 @@ public interface NodeStore {
     /**
      * Adds a user's subscription to the node. If the user already has a subscription then the
      * existing one will be updated.
-     * 
+     *
      * @param nodeId the node reference.
      * @param user the user's JID.
      * @param subscriptionId an id for the user's subscription (to allow a user to have multiple
@@ -128,43 +128,30 @@ public interface NodeStore {
      */
     void addUserSubscription(NodeSubscription subscription) throws NodeStoreException;
 
-    
+
     /**
      * Get a user's node memberships (subscription + affiliation)
-     * 
+     *
      * @param jid
      * @return
      * @throws NodeStoreException
      */
     ResultSet<NodeMembership> getUserMemberships(JID jid, boolean ephemeral)
         throws NodeStoreException;
-    
+
     /**
      * Get a user's node memberships (subscription + affiliation)
      * Default ephemeral to false
-     * 
+     *
      * @param jid
      * @return
      * @throws NodeStoreException
      */
     ResultSet<NodeMembership> getUserMemberships(JID jid) throws NodeStoreException;
-    
-    /**
-     * Get a user's node memberships (subscription + affiliation) with configuration
-     * 
-     * @param jid
-     * @param configurationFilter the list of configuration fields to be returned
-     * @param subscriptionsFilter map with configuration fields and corresponding 
-     *                            values that will filter the returning subscription list. 
-     * @return
-     * @throws NodeStoreException
-     */
-    ResultSet<NodeMembershipWithConfiguration> getUserMembershipsWithConfiguration(JID jid, List<String> configurationFilter, 
-        Map<String, String> subscriptionsFilter) throws NodeStoreException;
 
     /**
      * Get a node's members
-     * 
+     *
      * @param nodeId
      * @return
      * @throws NodeStoreException
@@ -173,7 +160,7 @@ public interface NodeStore {
 
     /**
      * Get affiliation changes for a user
-     * 
+     *
      * @param user
      * @param startDate
      * @param endDate
@@ -183,7 +170,7 @@ public interface NodeStore {
 
     /**
      * Get a list of node owners
-     * 
+     *
      * @param node
      * @throws NodeStoreException
      */
@@ -191,7 +178,7 @@ public interface NodeStore {
 
     /**
      * Gets subscription changes for a user
-     * 
+     *
      * @param user
      * @param startDate
      * @param endDate
@@ -203,7 +190,7 @@ public interface NodeStore {
 
     /**
      * Gets the set of listeners to the node.
-     * 
+     *
      * @param nodeId the node reference.
      * @return
      */
@@ -211,7 +198,7 @@ public interface NodeStore {
 
     /**
      * Gets the set of listeners to all nodes.
-     * 
+     *
      * @param nodeId the node reference.
      * @return
      */
@@ -219,7 +206,7 @@ public interface NodeStore {
 
     /**
      * Gets a user's membership to a node.
-     * 
+     *
      * @param nodeId
      * @param user
      * @return
@@ -229,7 +216,7 @@ public interface NodeStore {
 
     /**
      * Retrieves an iterator of items within a node.
-     * 
+     *
      * @param nodeId the node id from which to retrieve the items.
      * @param afterNodeId the itemId after which to retrieve items (exclusive, based on modified
      *        date).
@@ -242,7 +229,7 @@ public interface NodeStore {
 
     /**
      * Get node items between two dates
-     * 
+     *
      * @param nodeId the node id from which to retrieve items
      * @param startDate items older than (or same age as) start date
      * @param endDate items younger than (or same age as) end date
@@ -251,7 +238,7 @@ public interface NodeStore {
 
     /**
      * Retrieves an iterator of all items within a node.
-     * 
+     *
      * @param nodeId the node id from which to retrieve the items.
      * @return an {@link Iterator} of the node entries.
      * @throws NodeStoreException
@@ -260,7 +247,7 @@ public interface NodeStore {
 
     /**
      * Retrieves node item replies
-     * 
+     *
      * @param nodeId
      * @param itemId
      * @param afterItemId
@@ -272,7 +259,7 @@ public interface NodeStore {
 
     /**
      * Get a count of the number of replies to an item
-     * 
+     *
      * @param nodeId
      * @param itemId
      * @throws NodeStoreException
@@ -281,7 +268,7 @@ public interface NodeStore {
 
     /**
      * Retrieves node item thread
-     * 
+     *
      * @param nodeId
      * @param itemId
      * @param afterItemId
@@ -293,7 +280,7 @@ public interface NodeStore {
 
     /**
      * Get a count of the number of items in a thread
-     * 
+     *
      * @param nodeId
      * @param itemId
      * @throws NodeStoreException
@@ -302,7 +289,7 @@ public interface NodeStore {
 
     /**
      * Get recent items for a user
-     * 
+     *
      * @param user
      * @param since
      * @param maxPerNode
@@ -314,14 +301,14 @@ public interface NodeStore {
 
     /**
      * Get count of recent items for a user
-     * 
+     *
      * @throws NodeStoreException
      */
     int getCountRecentItems(JID user, Date since, int maxPerNode, String node, boolean parentOnly) throws NodeStoreException;
 
     /**
      * Get feed items for a user
-     * 
+     *
      * @param user
      * @param since
      * @return
@@ -331,14 +318,14 @@ public interface NodeStore {
 
     /**
      * Get count of recent items for a user
-     * 
+     *
      * @throws NodeStoreException
      */
     int getCountUserFeedItems(JID user, Date since, boolean parentOnly) throws NodeStoreException;
 
     /**
      * Retrieves the number of items within a node.
-     * 
+     *
      * @param nodeId the node id from which to retrieve the item count.
      * @param parentOnly whether to include post item replies/comments in count
      * @return the entries count.
@@ -348,7 +335,7 @@ public interface NodeStore {
 
     /**
      * Retrieves a single node item by the node item id.
-     * 
+     *
      * @param nodeId the node id.
      * @param nodeItemId the node item id.
      * @return the node item, or <code>null</code> if not found.
@@ -358,7 +345,7 @@ public interface NodeStore {
 
     /**
      * Retrieves a single node item from a global item ID
-     * 
+     *
      * @param itemId
      * @return
      */
@@ -366,7 +353,7 @@ public interface NodeStore {
 
     /**
      * Stores a new item against the node.
-     * 
+     *
      * @param item the node item.
      * @throws NodeStoreException if an item with the same id already exists against the node.
      */
@@ -374,24 +361,15 @@ public interface NodeStore {
 
     /**
      * Updates an existing item against the node.
-     * 
+     *
      * @param item the node item.
      * @throws NodeStoreException if an item with the same id did not already exist.
      */
     void updateNodeItem(NodeItem item) throws NodeStoreException;
 
     /**
-     * Updates the updated date on a thread parent
-     * 
-     * @param node
-     * @param itemId
-     * @throws NodeStoreException
-     */
-    void updateThreadParent(String node, String itemId) throws NodeStoreException;
-
-    /**
      * Deletes the specified node item.
-     * 
+     *
      * @param nodeId the node id.
      * @param nodeItemId the id of the item to delete.
      * @throws NodeStoreException if the item was not found
@@ -400,21 +378,21 @@ public interface NodeStore {
 
     /**
      * Allows the server to determine if the requested node is cached locally
-     * 
+     *
      * @param nodeId the node id.
      */
     boolean isCachedNode(String nodeId) throws NodeStoreException;
 
     /**
      * Allows the server to determine if the requested JID details are cached locally
-     * 
+     *
      * @param jid user/node jid.
      */
     boolean isCachedJID(JID jid) throws NodeStoreException;
 
     /**
      * Return whether node config is cached locally
-     * 
+     *
      * @param nodeId
      * @return
      * @throws NodeStoreException
@@ -423,14 +401,14 @@ public interface NodeStore {
 
     /**
      * Allows the server to determine if the requested (subscriptions) node is cached locally
-     * 
+     *
      * @param nodeId the node id.
      */
     boolean nodeHasSubscriptions(String nodeId) throws NodeStoreException;
 
     /**
      * Purges all items from a node
-     * 
+     *
      * @param nodeId the node id
      * @throws NodeStoreException
      */
@@ -438,28 +416,28 @@ public interface NodeStore {
 
     /**
      * Retrieves a list of nodes
-     * 
+     *
      * @throws NodeStoreException
      */
     ArrayList<String> getNodeList() throws NodeStoreException;
-    
+
     /**
      * Retrieves a list of local nodes
-     * 
+     *
      * @throws NodeStoreException
      */
     List<String> getLocalNodesList() throws NodeStoreException;
 
     /**
      * Retrieves a list of remote nodes
-     * 
+     *
      * @throws NodeStoreException
      */
     List<String> getRemoteNodesList() throws NodeStoreException;
-    
+
     /**
      * Search subscribed nodes for content
-     * 
+     *
      * @param searcher
      *            JID of user performing the search
      * @param content
@@ -479,7 +457,7 @@ public interface NodeStore {
 
     /**
      * Retrieves a list of items from public channels "firehose"
-     * 
+     *
      * @param limit
      *            limit the number of results
      * @param afterItemId
@@ -496,7 +474,7 @@ public interface NodeStore {
 
     /**
      * Get count of items from public channels "firehose"
-     * 
+     *
      * @param isAdmin
      *            counts items from non-open nodes
      * @param actorDomain
@@ -507,7 +485,7 @@ public interface NodeStore {
 
     /**
      * Get a list of posts for a user
-     * 
+     *
      * @param userJid
      * @return
      * @throws NodeStoreException
@@ -516,7 +494,7 @@ public interface NodeStore {
 
     /**
      * Determine if a user has already rated a post
-     * 
+     *
      * @param node
      * @param user
      * @param id
@@ -525,18 +503,18 @@ public interface NodeStore {
      */
     boolean userHasRatedPost(String node, JID user, GlobalItemID id) throws NodeStoreException;
 
-    /** 
+    /**
      * Get a count of valid local subscriptions to a node
-     * 
+     *
      * @param node
      * @return
-     * @throws NodeStoreException 
+     * @throws NodeStoreException
      */
     int getCountLocalSubscriptionsToNode(String node) throws NodeStoreException;
-    
+
     /**
      * Delete user posts
-     * 
+     *
      * @param userJid
      * @throws NodeStoreException
      */
@@ -544,7 +522,7 @@ public interface NodeStore {
 
     /**
      * Delete affiliations for a user
-     * 
+     *
      * @param userJid
      * @throws NodeStoreException
      */
@@ -552,7 +530,7 @@ public interface NodeStore {
 
     /**
      * Delete user subscriptions
-     * 
+     *
      * @param userJid
      * @throws NodeStoreException
      */
@@ -560,7 +538,7 @@ public interface NodeStore {
 
     /**
      * Get node threads
-     * 
+     *
      * @param node
      * @param afterId
      * @param limit
@@ -571,7 +549,7 @@ public interface NodeStore {
 
     /**
      * A JID has come online
-     * 
+     *
      * @param jid
      * @throws NodeStoreException
      */
@@ -579,7 +557,7 @@ public interface NodeStore {
 
     /**
      * A JID has gone offline
-     * 
+     *
      * @param jid
      * @throws NodeStoreException
      */
@@ -587,17 +565,17 @@ public interface NodeStore {
 
     /**
      * Get online resources
-     * 
+     *
      * @return
      * @throws NodeStoreException
-     * 
+     *
      * @params jid
      */
     ArrayList<JID> onlineJids(JID jid) throws NodeStoreException;
 
     /**
      * Count node threads
-     * 
+     *
      * @param node
      * @return
      * @throws NodeStoreException
@@ -615,7 +593,7 @@ public interface NodeStore {
      * Can be called multiple times to invoke a sort of stack of transactions. The transaction will
      * then only be committed if {@link #commitTransaction()} has been called the same number of
      * times that {@link #beginTransaction()} was called. If {@link #closeTransaction()}
-     * 
+     *
      * @return the transaction object which can be used to commit or rollback the transaction.
      * @throws NodeStoreException
      * @throws IllegalStateException if a failed (i.e. rolled back) transaction is in progress
@@ -629,9 +607,9 @@ public interface NodeStore {
 
         /**
          * Commits and closes the transaction.
-         * 
+         *
          * @throws NodeStoreException
-         * 
+         *
          * @throws IllegalStateException if the transaction has already been closed.
          */
         void commit() throws NodeStoreException;
@@ -643,21 +621,21 @@ public interface NodeStore {
          * used in a finally block. e.g:
          * <p>
          * <blockquote>
-         * 
+         *
          * <pre>
          * Transaction transaction = null;
-         * 
+         *
          * try {
          *   transaction = nodeStore.beginTransaction();
-         * 
+         *
          *   ... Do some stuff ...
-         *   
+         *
          *   transaction.commit();
          * } finally {
          *   if(transaction != null) transaction.close();
          * }
          * </pre>
-         * 
+         *
          * </blockquote>
          */
         void close() throws NodeStoreException;

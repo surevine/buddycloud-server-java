@@ -58,9 +58,9 @@ public class JDBCNodeStore implements NodeStore {
 
     /**
      * Create a new node store connection backed by the given JDBC {@link Connection}.
-     * 
+     *
      * @param conn the connection to the backing database.
-     * @param configuration 
+     * @param configuration
      */
     public JDBCNodeStore(final Connection conn, final NodeStoreSQLDialect dialect, Configuration configuration) {
         this.conn = conn;
@@ -155,11 +155,13 @@ public class JDBCNodeStore implements NodeStore {
 
             if (rows == 0) { // If the update didn't update any rows
                 addStatement = conn.prepareStatement(dialect.insertConf());
-                addStatement.setString(1, nodeId);
-                addStatement.setString(2, key);
-                addStatement.setString(3, value);
+                addStatement.setString(1, key);
+                addStatement.setString(2, value);
+                addStatement.setString(3, nodeId);
 
-                addStatement.executeUpdate();
+                if (addStatement.executeUpdate() == 0) {
+                  throw new NodeStoreException("Node not found");
+                }
             }
         } catch (SQLException e) {
             throw new NodeStoreException(e);
@@ -234,9 +236,9 @@ public class JDBCNodeStore implements NodeStore {
 
                 if (rows == 0) { // If the update didn't update any rows
                     addStatement = conn.prepareStatement(dialect.insertAffiliation());
-                    addStatement.setString(1, nodeId);
-                    addStatement.setString(2, user.toBareJID());
-                    addStatement.setString(3, affiliation.toString());
+                    addStatement.setString(1, user.toBareJID());
+                    addStatement.setString(2, affiliation.toString());
+                    addStatement.setString(3, nodeId);
                     addStatement.executeUpdate();
                     addStatement.close();
                 }
@@ -346,15 +348,15 @@ public class JDBCNodeStore implements NodeStore {
 
                 if (rows == 0) { // If the update didn't update any rows
                     addStatement = conn.prepareStatement(dialect.insertSubscription());
-                    addStatement.setString(1, subscription.getNodeId());
-                    addStatement.setString(2, subscription.getUser().toBareJID());
-                    addStatement.setString(3, subscription.getListener().toString());
-                    addStatement.setString(4, subscription.getSubscription().toString());
+                    addStatement.setString(1, subscription.getUser().toBareJID());
+                    addStatement.setString(2, subscription.getListener().toString());
+                    addStatement.setString(3, subscription.getSubscription().toString());
                     if (null == subscription.getInvitedBy()) {
-                        addStatement.setNull(5, Types.NULL);
+                        addStatement.setNull(4, Types.NULL);
                     } else {
-                        addStatement.setString(5, subscription.getInvitedBy().toBareJID());
+                        addStatement.setString(4, subscription.getInvitedBy().toBareJID());
                     }
+                    addStatement.setString(5, subscription.getNodeId());
                     addStatement.executeUpdate();
                     addStatement.close();
                 }
@@ -398,7 +400,7 @@ public class JDBCNodeStore implements NodeStore {
             close(stmt); // Will implicitly close the resultset if required
         }
     }
-    
+
     @Override
     public ResultSet<NodeMembership> getUserMemberships(JID jid) throws NodeStoreException {
       PreparedStatement stmt = null;
@@ -425,83 +427,19 @@ public class JDBCNodeStore implements NodeStore {
           close(stmt); // Will implicitly close the resultset if required
       }
     }
-    
-    @Override
-    public ResultSet<NodeMembershipWithConfiguration> getUserMembershipsWithConfiguration(JID jid, List<String> configurationFilter, 
-        Map<String, String> subscriptionsFilter) throws NodeStoreException {
-      PreparedStatement stmt = null;
-      try {
-          String sql = dialect.selectUserMembershipsWithConfiguration();
-          sql = sql.replace("%configFilter%", getCollectionStatement(configurationFilter.size()));
-          sql = sql.replace("%subscriptionFilter%", getCollectionStatement(subscriptionsFilter.size()));
-          
-          stmt = conn.prepareStatement(sql);
-          
-          int parameterIdx = 1;
-          for (Entry<String, String> subscriptionFilterEntry : subscriptionsFilter.entrySet()) {
-            stmt.setString(parameterIdx++, subscriptionFilterEntry.getKey() + ";" + subscriptionFilterEntry.getValue());
-          }
-          stmt.setInt(parameterIdx++, subscriptionsFilter.size());
-          
-          stmt.setInt(parameterIdx++, configurationFilter.size());
-          for (String configurationValue : configurationFilter) {
-            stmt.setString(parameterIdx++, configurationValue);
-          }
-          
-          stmt.setString(parameterIdx, jid.toBareJID());
-          java.sql.ResultSet rs = stmt.executeQuery();
-
-          Map<String, NodeMembershipWithConfiguration> memberships = new HashMap<String, NodeMembershipWithConfiguration>(); 
-          
-          while (rs.next()) {
-            String nodeId = rs.getString(1);
-            NodeMembershipWithConfigurationImpl membership = (NodeMembershipWithConfigurationImpl) memberships.get(nodeId);
-            if (membership == null) {
-              JID inviter = null;
-              if (null != rs.getString(6)) {
-                inviter = new JID(rs.getString(6));
-              }
-              membership = new NodeMembershipWithConfigurationImpl(new NodeMembershipImpl(nodeId, 
-                  new JID(rs.getString(2)), new JID(rs.getString(3)),
-                  Subscriptions.valueOf(rs.getString(4)), Affiliations.valueOf(rs.getString(5)), 
-                  inviter, rs.getTimestamp(7)), new HashMap<String, String>());
-              memberships.put(nodeId, membership);
-            }
-            membership.putConfiguration(rs.getString(8), rs.getString(9));
-          }
-          return new ResultSetImpl<NodeMembershipWithConfiguration>(memberships.values());
-      } catch (SQLException e) {
-          throw new NodeStoreException(e);
-      } finally {
-          close(stmt); // Will implicitly close the resultset if required
-      }
-    }
-    
-    private static String getCollectionStatement(int collectionLength) {
-      if (collectionLength == 0) {
-        return "'%'";
-      }
-      StringBuilder strBuilder = new StringBuilder();
-      for (int i = 0; i < collectionLength; i++) {
-        if (i > 0) {
-          strBuilder.append(",");
-        }
-        strBuilder.append("?");
-      }
-      return strBuilder.toString();
-    }
 
     @Override
     public ResultSet<NodeMembership> getUserMemberships(JID jid, boolean ephemeral) throws NodeStoreException {
         PreparedStatement stmt = null;
         try {
             String sql = dialect.selectUserMembershipsFilteredByEphemeral();
-            String replace = "IS NULL OR \"node_config\".\"value\" != 'true'";
+            String ephemeral_value = "false";
             if (ephemeral) {
-              replace = "= 'true'";
+              ephemeral_value = "true";
             }
-            stmt = conn.prepareStatement(sql.replace("%equals%", replace));
+            stmt = conn.prepareStatement(sql);
             stmt.setString(1, jid.toBareJID());
+            stmt.setString(2, ephemeral_value);
             java.sql.ResultSet rs = stmt.executeQuery();
 
             ArrayList<NodeMembership> result = new ArrayList<NodeMembership>();
@@ -754,9 +692,9 @@ public class JDBCNodeStore implements NodeStore {
 
         try {
             stmt = conn.prepareStatement(dialect.getSubscriptionChanges());
-            stmt.setTimestamp(1, new java.sql.Timestamp(startDate.getTime()));
-            stmt.setTimestamp(2, new java.sql.Timestamp(endDate.getTime()));
-            stmt.setString(3, user.toBareJID());
+            stmt.setString(1, user.toBareJID());
+            stmt.setTimestamp(2, new java.sql.Timestamp(startDate.getTime()));
+            stmt.setTimestamp(3, new java.sql.Timestamp(endDate.getTime()));
 
             java.sql.ResultSet rs = stmt.executeQuery();
 
@@ -780,7 +718,7 @@ public class JDBCNodeStore implements NodeStore {
             close(stmt); // Will implicitly close the resultset if required
         }
     }
-    
+
     @Override
     public int getCountLocalSubscriptionsToNode(String node) throws NodeStoreException {
 
@@ -874,12 +812,12 @@ public class JDBCNodeStore implements NodeStore {
         } else if (count < -1) {
             throw new IllegalArgumentException("Invalid value for parameter count: " + count);
         }
-        
+
         String parentOnlySubstitution = "";
         if (parentOnly) {
           parentOnlySubstitution = " AND \"in_reply_to\" IS NULL ";
         }
-        
+
         String query = null;
         try {
             if (afterItem == null) {
@@ -945,7 +883,7 @@ public class JDBCNodeStore implements NodeStore {
 
         if (afterItemId != null) {
             afterItemDate = getNodeItem(afterItemId).getUpdated();
-            afterSQL = " AND \"updated\" < ? ";
+            afterSQL = " AND \"items\".\"updated\" < ? ";
         }
 
         try {
@@ -1040,7 +978,7 @@ public class JDBCNodeStore implements NodeStore {
 
                 parameters.add(subscription.getNodeId());
                 parameters.add(new java.sql.Timestamp(since.getTime()));
-                parameters.add(maxPerNode);
+                //parameters.add(maxPerNode);
             }
             stmt = conn.prepareStatement(StringUtils.join(queryParts, " UNION ALL "));
             int index = 1;
@@ -1052,7 +990,11 @@ public class JDBCNodeStore implements NodeStore {
             java.sql.ResultSet rs = stmt.executeQuery();
             int count = 0;
             while (rs.next()) {
-                count += rs.getInt(1);
+                if (rs.getInt(1) < maxPerNode) {
+                  count += rs.getInt(1);
+                } else {
+                  count += maxPerNode;
+                }
             }
             stmt = null; // Prevent the finally block from closing the
                          // statement
@@ -1089,16 +1031,18 @@ public class JDBCNodeStore implements NodeStore {
 
             ResultSet<NodeMembership> subscriptions = this.getUserMemberships(user);
 
+            /* Early exit with empty set if there are no subscriptions. */
             if (subscriptions == null || subscriptions.isEmpty()) {
                 return new ClosableIteratorImpl<NodeItem>(
                     new ArrayList<NodeItem>().iterator());
             }
-            
+
             ArrayList<String> queryParts = new ArrayList<String>();
             ArrayList<Object> parameters = new ArrayList<Object>();
 
             int counter = 1;
             for (NodeMembership subscription : subscriptions) {
+                /* Skip over unrelated subscriptions. */
                 if (false == subscription.getSubscription().equals(Subscriptions.subscribed)) {
                     continue;
                 }
@@ -1177,19 +1121,19 @@ public class JDBCNodeStore implements NodeStore {
               since = new Date(0);
               afterReplacement = ">";
             }
-            
+
             if (null != rsmItem) {
                 since = getNodeItem(nodeId, rsmItem).getUpdated();
             }
             String query = dialect.selectItemReplies()
                 .replace("%beforeAfter%", afterReplacement);
-            
+
             if (-1 != limit) {
                 query += " LIMIT ?";
             }
             stmt = conn.prepareStatement(query);
             stmt.setString(1, nodeId);
-            stmt.setString(2, "%" + getLocalId(itemId));
+            stmt.setString(2, getLocalId(itemId));
             stmt.setTimestamp(3, new java.sql.Timestamp(since.getTime()));
             if (-1 != limit) {
                 stmt.setInt(4, limit);
@@ -1218,7 +1162,7 @@ public class JDBCNodeStore implements NodeStore {
         try {
             stmt = conn.prepareStatement(dialect.selectCountItemReplies());
             stmt.setString(1, nodeId);
-            stmt.setString(2, "%" + getLocalId(itemId));
+            stmt.setString(2, getLocalId(itemId));
 
             java.sql.ResultSet rs = stmt.executeQuery();
 
@@ -1251,11 +1195,10 @@ public class JDBCNodeStore implements NodeStore {
             stmt = conn.prepareStatement(query);
             stmt.setString(1, nodeId);
             itemId = getLocalId(itemId);
-            stmt.setString(2, "%" + itemId);
-            stmt.setString(3, itemId);
-            stmt.setTimestamp(4, new java.sql.Timestamp(since.getTime()));
+            stmt.setString(2, itemId);
+            stmt.setTimestamp(3, new java.sql.Timestamp(since.getTime()));
             if (-1 != limit) {
-                stmt.setInt(5, limit);
+                stmt.setInt(4, limit);
             }
 
             java.sql.ResultSet rs = stmt.executeQuery();
@@ -1282,8 +1225,7 @@ public class JDBCNodeStore implements NodeStore {
             stmt = conn.prepareStatement(dialect.selectCountItemThread());
             stmt.setString(1, nodeId);
             itemId = getLocalId(itemId);
-            stmt.setString(2, "%" + itemId);
-            stmt.setString(3, itemId);
+            stmt.setString(2, itemId);
 
             java.sql.ResultSet rs = stmt.executeQuery();
 
@@ -1307,9 +1249,9 @@ public class JDBCNodeStore implements NodeStore {
         try {
 
             stmt = conn.prepareStatement(dialect.selectItemsForUsersNodesBetweenDates());
-            stmt.setString(3, user.toBareJID());
-            stmt.setTimestamp(1, new java.sql.Timestamp(startDate.getTime()));
-            stmt.setTimestamp(2, new java.sql.Timestamp(endDate.getTime()));
+            stmt.setString(1, user.toBareJID());
+            stmt.setTimestamp(2, new java.sql.Timestamp(startDate.getTime()));
+            stmt.setTimestamp(3, new java.sql.Timestamp(endDate.getTime()));
 
             java.sql.ResultSet rs = stmt.executeQuery();
 
@@ -1388,20 +1330,51 @@ public class JDBCNodeStore implements NodeStore {
     @Override
     public void addNodeItem(NodeItem item) throws NodeStoreException {
         PreparedStatement stmt = null;
+        PreparedStatement thread_upd = null;
+        PreparedStatement thread_ins = null;
+        Transaction t;
 
         try {
+            t = beginTransaction();
+
+            String thread_id = item.getInReplyTo();
+            if (thread_id == null) {
+              thread_id = item.getId();
+            }
+            Timestamp ts = new Timestamp(item.getUpdated().getTime());
+
+            thread_upd = conn.prepareStatement(dialect.updateThread());
+            thread_upd.setTimestamp(1, ts);
+            thread_upd.setString(2, item.getNodeId());
+            thread_upd.setString(3, thread_id);
+            if (thread_upd.executeUpdate() == 0) {
+              thread_ins = conn.prepareStatement(dialect.insertThread());
+              thread_ins.setTimestamp(1, ts);
+              thread_ins.setString(2, thread_id);
+              thread_ins.setString(3, item.getNodeId());
+              if (thread_ins.executeUpdate() != 1) {
+                throw new ItemNotFoundException("No thread inserted.");
+              }
+            }
+
             stmt = conn.prepareStatement(dialect.insertItem());
 
-            stmt.setString(1, item.getNodeId());
-            stmt.setString(2, item.getId());
-            stmt.setTimestamp(3, new Timestamp(item.getUpdated().getTime()));
-            stmt.setString(4, item.getPayload());
-            stmt.setString(5, item.getInReplyTo());
+            stmt.setString(1, item.getId());
+            stmt.setTimestamp(2, ts);
+            stmt.setString(3, item.getPayload());
+            stmt.setString(4, item.getInReplyTo());
+            stmt.setString(5, thread_id);
+            stmt.setString(6, item.getNodeId());
 
-            stmt.executeUpdate();
+            if (stmt.executeUpdate() != 1) {
+              throw new ItemNotFoundException("No row inserted, maybe the thread is missing?");
+            }
+            t.commit();
         } catch (SQLException e) {
             throw new NodeStoreException(e);
         } finally {
+            close(thread_upd);
+            close(thread_ins);
             close(stmt); // Will implicitly close the resultset if required
         }
     }
@@ -1423,23 +1396,6 @@ public class JDBCNodeStore implements NodeStore {
             if (rows != 1) {
                 throw new ItemNotFoundException("No records affected when updating an item");
             }
-        } catch (SQLException e) {
-            throw new NodeStoreException(e);
-        } finally {
-            close(stmt); // Will implicitly close the resultset if required
-        }
-    }
-
-    @Override
-    public void updateThreadParent(String node, String itemId) throws NodeStoreException {
-        PreparedStatement stmt = null;
-        try {
-            stmt = conn.prepareStatement(dialect.updateThreadParent());
-
-            stmt.setString(1, node);
-            stmt.setString(2, itemId);
-
-            stmt.executeUpdate();
         } catch (SQLException e) {
             throw new NodeStoreException(e);
         } finally {
@@ -1488,11 +1444,17 @@ public class JDBCNodeStore implements NodeStore {
     public CloseableIterator<NodeItem> performSearch(JID searcher, List content, JID author, int page, int rpp) throws NodeStoreException {
         PreparedStatement stmt = null;
         try {
-            String sql =
-                    "SELECT * FROM \"items\"  " + "LEFT JOIN \"subscriptions\" ON \"items\".\"node\" = \"subscriptions\".\"node\" " + "WHERE "
-                            + "\"subscriptions\".\"user\" = ?  " + "AND \"subscriptions\".\"subscription\" = 'subscribed' "
-                            + "AND RIGHT(\"items\".\"node\", 6) = '/posts' " + " $searchParameters " + "ORDER BY \"items\".\"updated\" DESC "
-                            + "LIMIT ? OFFSET ?;";
+            String sql = "SELECT \"nodes\".\"node\", \"items\".\"id\", \"items\".\"updated\", "
+                    + "\"items\".\"xml\", \"items\".\"in_reply_to\", \"items\".\"created\" FROM \"items\" "
+                    + "JOIN \"nodes\" ON \"nodes\".\"node_id\" = \"items\".\"node_id\" "
+                    + "JOIN \"subscriptions\" ON \"nodes\".\"node_id\" = \"subscriptions\".\"node_id\" "
+                    + " AND \"subscriptions\".\"user\" = ? "
+                    + "LEFT JOIN \"affiliations\" ON \"affiliations\".\"node_id\" = \"nodes\".\"node_id\" "
+                    + " AND \"affiliations\".\"user\" = \"subscriptions\".\"user\" "
+                    + "WHERE \"subscriptions\".\"subscription\" = 'subscribed' "
+                    + "AND COALESCE(\"affiliations\".\"affiliation\", 'none') != 'outcast' "
+                    + "AND RIGHT(\"nodes\".\"node\", 6) = '/posts' " + " $searchParameters " + "ORDER BY \"items\".\"updated\" DESC "
+                    + "LIMIT ? OFFSET ?";
             ArrayList<String> parameterValues = new ArrayList<String>();
             parameterValues.add(searcher.toBareJID());
             String searchParameters = "";
@@ -1930,10 +1892,8 @@ public class JDBCNodeStore implements NodeStore {
         String selectNodeMemberships();
 
         String selectUserMemberships();
-        
+
         String selectUserMembershipsFilteredByEphemeral();
-        
-        String selectUserMembershipsWithConfiguration();
 
         String selectMembership();
 
@@ -1958,7 +1918,7 @@ public class JDBCNodeStore implements NodeStore {
         String countUserAffiliations();
 
         String countSubscriptionsForNode();
-        
+
         String countLocalValidSubscriptionsForNode();
 
         String countSubscriptionsToNodeForOwner();
@@ -2047,11 +2007,13 @@ public class JDBCNodeStore implements NodeStore {
 
         String selectCountItemThread();
 
+        String insertThread();
+
+        String updateThread();
+
         String insertItem();
 
         String updateItem();
-
-        String updateThreadParent();
 
         String deleteItem();
 

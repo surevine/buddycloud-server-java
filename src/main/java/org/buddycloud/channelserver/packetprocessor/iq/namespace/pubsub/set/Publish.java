@@ -99,7 +99,6 @@ public class Publish extends PubSubElementProcessorAbstract {
                 return;
             }
             saveNodeItem();
-            updateThreadParent();
             sendResponseStanza();
             sendNotifications();
 
@@ -112,13 +111,6 @@ public class Publish extends PubSubElementProcessorAbstract {
             createExtendedErrorReply(PacketError.Type.modify, PacketError.Condition.not_acceptable, ValidatePayload.UNSUPPORTED_CONTENT_TYPE);
         }
 
-    }
-
-    private void updateThreadParent() throws NodeStoreException {
-        if (null == this.validator.getInReplyTo()) {
-            return;
-        }
-        channelManager.updateThreadParent(node, this.validator.getInReplyTo());
     }
 
     private void saveNodeItem() throws NodeStoreException {

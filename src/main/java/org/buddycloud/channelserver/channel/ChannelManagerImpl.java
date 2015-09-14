@@ -36,7 +36,7 @@ public class ChannelManagerImpl implements ChannelManager {
 
   /**
    * Create an instance backed by a {@link NodeStore}.
-   * 
+   *
    * @param nodeStore the backing {@link NodeStore}.
    */
   public ChannelManagerImpl(final NodeStore nodeStore) {
@@ -365,12 +365,6 @@ public class ChannelManagerImpl implements ChannelManager {
   }
 
   @Override
-  public void updateThreadParent(String node, String itemId) throws NodeStoreException {
-    nodeStore.updateThreadParent(node, itemId);
-
-  }
-
-  @Override
   public NodeMembership getNodeMembership(String nodeId, JID user) throws NodeStoreException {
     return nodeStore.getNodeMembership(nodeId, user);
   }
@@ -379,13 +373,7 @@ public class ChannelManagerImpl implements ChannelManager {
   public ResultSet<NodeMembership> getUserMemberships(JID jid) throws NodeStoreException {
     return nodeStore.getUserMemberships(jid);
   }
-  
-  @Override
-  public ResultSet<NodeMembershipWithConfiguration> getUserMembershipsWithConfiguration(JID jid, List<String> configurationFilter, 
-      Map<String, String> subscriptionsFilter) throws NodeStoreException {
-    return nodeStore.getUserMembershipsWithConfiguration(jid, configurationFilter, subscriptionsFilter);
-  }
-  
+
   @Override
   public ResultSet<NodeMembership> getUserMemberships(JID jid, boolean ephemeral)
       throws NodeStoreException {

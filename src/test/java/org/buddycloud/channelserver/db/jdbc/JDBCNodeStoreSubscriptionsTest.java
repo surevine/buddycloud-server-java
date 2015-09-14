@@ -39,11 +39,10 @@ public class JDBCNodeStoreSubscriptionsTest extends JDBCNodeStoreAbstract {
 
         dbTester.assertions().assertTableContains("subscriptions", new HashMap<String, Object>() {
             {
-                put("node", TEST_SERVER1_NODE1_ID);
                 put("user", TEST_SERVER1_USER1_JID.toString());
                 put("subscription", Subscriptions.subscribed.toString());
             }
-        });
+        }, TEST_SERVER1_NODE1_ID);
     }
 
     @Test
@@ -57,12 +56,11 @@ public class JDBCNodeStoreSubscriptionsTest extends JDBCNodeStoreAbstract {
 
         dbTester.assertions().assertTableContains("subscriptions", new HashMap<String, Object>() {
             {
-                put("node", TEST_SERVER1_NODE1_ID);
                 put("user", TEST_SERVER2_USER1_JID.toString());
                 put("listener", TEST_SERVER2_CHANNELS_JID.toString());
                 put("subscription", Subscriptions.subscribed.toString());
             }
-        });
+        }, TEST_SERVER1_NODE1_ID);
     }
 
     @Test
@@ -76,12 +74,11 @@ public class JDBCNodeStoreSubscriptionsTest extends JDBCNodeStoreAbstract {
 
         dbTester.assertions().assertTableContains("subscriptions", new HashMap<String, Object>() {
             {
-                put("node", TEST_SERVER1_NODE1_ID);
                 put("user", TEST_SERVER2_USER1_JID.toString());
                 put("listener", TEST_SERVER2_CHANNELS_JID.toString());
                 put("subscription", Subscriptions.subscribed.toString());
             }
-        });
+        }, TEST_SERVER1_NODE1_ID);
     }
 
     @Test
@@ -94,10 +91,9 @@ public class JDBCNodeStoreSubscriptionsTest extends JDBCNodeStoreAbstract {
 
         dbTester.assertions().assertTableContains("subscriptions", new HashMap<String, Object>() {
             {
-                put("node", TEST_SERVER1_NODE1_ID);
                 put("user", TEST_SERVER1_USER1_JID.toString());
             }
-        }, 0);
+        }, TEST_SERVER1_NODE1_ID, 0);
     }
 
     @Test
@@ -111,10 +107,9 @@ public class JDBCNodeStoreSubscriptionsTest extends JDBCNodeStoreAbstract {
 
         dbTester.assertions().assertTableContains("subscriptions", new HashMap<String, Object>() {
             {
-                put("node", TEST_SERVER1_NODE1_ID);
                 put("user", TEST_SERVER1_USER1_JID.toString());
             }
-        }, 0);
+        }, TEST_SERVER1_NODE1_ID, 0);
     }
 
     @Test(expected = NullPointerException.class)
@@ -136,19 +131,17 @@ public class JDBCNodeStoreSubscriptionsTest extends JDBCNodeStoreAbstract {
 
         dbTester.assertions().assertTableContains("subscriptions", new HashMap<String, Object>() {
             {
-                put("node", TEST_SERVER1_NODE1_ID);
                 put("user", TEST_SERVER1_USER1_JID.toString());
                 put("subscription", Subscriptions.subscribed.toString());
             }
-        }, 0);
+        }, TEST_SERVER1_NODE1_ID, 0);
 
         dbTester.assertions().assertTableContains("subscriptions", new HashMap<String, Object>() {
             {
-                put("node", TEST_SERVER1_NODE1_ID);
                 put("user", TEST_SERVER1_USER1_JID.toString());
                 put("subscription", Subscriptions.unconfigured.toString());
             }
-        });
+        }, TEST_SERVER1_NODE1_ID);
     }
 
     @Test
@@ -162,11 +155,10 @@ public class JDBCNodeStoreSubscriptionsTest extends JDBCNodeStoreAbstract {
 
         dbTester.assertions().assertTableContains("subscriptions", new HashMap<String, Object>() {
             {
-                put("node", TEST_SERVER1_NODE1_ID);
                 put("user", TEST_SERVER1_USER1_JID.toString());
                 put("subscription", Subscriptions.subscribed.toString());
             }
-        });
+        }, TEST_SERVER1_NODE1_ID);
     }
 
     @Test
@@ -210,7 +202,7 @@ public class JDBCNodeStoreSubscriptionsTest extends JDBCNodeStoreAbstract {
         ResultSet<NodeSubscription> changes = store.getSubscriptionChanges(TEST_SERVER1_USER1_JID, new Date(0), new Date());
         assertEquals(0, changes.size());
     }
-    
+
     @Test
     public void returnsCountOfLocalSubscriptionsToNode() throws Exception {
       dbTester.loadData("node_1");

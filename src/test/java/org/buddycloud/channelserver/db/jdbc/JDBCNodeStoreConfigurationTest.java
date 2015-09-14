@@ -30,7 +30,7 @@ public class JDBCNodeStoreConfigurationTest extends JDBCNodeStoreAbstract {
 
         dbTester.assertions().assertTableContains("node_config", new HashMap<String, Object>() {
             {
-                put("node", TEST_SERVER1_NODE1_ID);
+                put("node_id", 0);
                 put("key", "config1");
                 put("value", "updated config1");
             }
@@ -39,7 +39,7 @@ public class JDBCNodeStoreConfigurationTest extends JDBCNodeStoreAbstract {
         // Make sure the old config isn't there
         dbTester.assertions().assertTableContains("node_config", new HashMap<String, Object>() {
             {
-                put("node", TEST_SERVER1_NODE1_ID);
+                put("node_id", 0);
                 put("key", "config1");
                 put("value", "Value of config1");
             }
@@ -55,7 +55,7 @@ public class JDBCNodeStoreConfigurationTest extends JDBCNodeStoreAbstract {
 
         dbTester.assertions().assertTableContains("node_config", new HashMap<String, Object>() {
             {
-                put("node", TEST_SERVER1_NODE1_ID);
+                put("node_id", 0);
                 put("key", "config3");
                 put("value", "Value of config3");
             }

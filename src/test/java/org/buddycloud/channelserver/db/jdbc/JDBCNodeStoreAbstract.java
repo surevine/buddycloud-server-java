@@ -99,20 +99,15 @@ public abstract class JDBCNodeStoreAbstract {
 
     protected void assertNodeConfigEquals(final String nodeId, final Map<String, String> config) throws Exception {
         // Check there's the correct number of config entries
-        dbTester.assertions().assertTableContains("node_config", new HashMap<String, Object>() {
-            {
-                put("node", nodeId);
-            }
-        }, config.size());
+        dbTester.assertions().assertTableContains("node_config", new HashMap<String, Object>(), nodeId, config.size());
 
         for (final Entry<String, String> entry : config.entrySet()) {
             dbTester.assertions().assertTableContains("node_config", new HashMap<String, Object>() {
                 {
-                    put("node", nodeId);
                     put("key", entry.getKey());
                     put("value", entry.getValue());
                 }
-            });
+            }, nodeId);
         }
     }
 
