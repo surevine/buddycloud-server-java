@@ -1911,21 +1911,11 @@ public class JDBCNodeStore implements NodeStore {
 
         String selectRecentItemParts();
 
-        String countNodeAffiliations();
-
         String selectRemoteNodes();
 
         String selectLocalNodes();
 
-        String countNodeAffiliationsForOwner();
-
-        String countUserAffiliations();
-
-        String countSubscriptionsForNode();
-
         String countLocalValidSubscriptionsForNode();
-
-        String countSubscriptionsToNodeForOwner();
 
         String deleteItems();
 
@@ -1943,20 +1933,6 @@ public class JDBCNodeStore implements NodeStore {
 
         String selectNodeConf();
 
-        String selectAffiliation();
-
-        String selectAffiliationsForUser();
-
-        String selectAffiliationsForUserAfterNodeId();
-
-        String selectAffiliationsForNode();
-
-        String selectAffiliationsToNodeForOwner();
-
-        String selectAffiliationsForNodeAfterJid();
-
-        String selectAffiliationsToNodeForOwnerAfterJid();
-
         String selectAffiliationChanges();
 
         String insertAffiliation();
@@ -1965,17 +1941,7 @@ public class JDBCNodeStore implements NodeStore {
 
         String deleteAffiliation();
 
-        String selectSubscriptionsForUser();
-
-        String selectSubscriptionsForUserAfterNode();
-
         String getSubscriptionChanges();
-
-        String selectSubscriptionsToNodeForOwner();
-
-        String selectSubscriptionsForNode();
-
-        String selectSubscriptionsForNodeAfterJid();
 
         String selectSubscriptionListeners();
 
@@ -1992,8 +1958,6 @@ public class JDBCNodeStore implements NodeStore {
         String selectSingleItem();
 
         String selectItemsForNode();
-
-        String selectItemsForNodeAfterDate();
 
         String selectItemsForNodeBeforeDate();
 
