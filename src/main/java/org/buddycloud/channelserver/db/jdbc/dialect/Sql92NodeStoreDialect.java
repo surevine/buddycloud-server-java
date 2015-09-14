@@ -170,11 +170,7 @@ public class Sql92NodeStoreDialect implements NodeStoreSQLDialect {
     private static final String SELECT_REMOTE_NODES =
             "SELECT \"nodes\".\"node\", \"config\".\"value\" AS \"value\" " +
             "FROM \"nodes\" " +
-            "LEFT JOIN \"node_config\" AS \"config\" " +
-            "ON \"config\".\"node_id\" = \"nodes\".\"node_id\" AND " +
-            "\"config\".\"key\" = 'buddycloud#advertise_node' " +
-            "WHERE \"nodes\".\"node\" !~ ? AND " +
-            "(\"value\" = 'true' OR \"value\" IS NULL)";
+            "WHERE \"nodes\".\"node\" !~ ?";
 
     private static final String SELECT_ITEMS_FROM_LOCAL_NODES_BEFORE_DATE =
             "SELECT \"nodes\".\"node\", \"id\", \"items\".\"updated\", \"xml\", \"in_reply_to\", \"created\" " +
