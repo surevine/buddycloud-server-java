@@ -9,7 +9,7 @@ public class Advertise extends Field {
   }
 
   public enum models {
-    TRUE("true"), FALSE("false");
+    TRUE("true"), FALSE("false"), JOINABLE("joinable"), LOCALLY("locally");
     String model = null;
 
     private models(String model) {
@@ -22,7 +22,10 @@ public class Advertise extends Field {
   }
 
   public boolean isValid() {
-    return (getValue().equals(Advertise.models.TRUE.toString()) || getValue().equals(
-        Advertise.models.FALSE.toString()));
+    return (getValue().equals(Advertise.models.TRUE.toString()) ||
+            getValue().equals(Advertise.models.FALSE.toString()) ||
+            getValue().equals(Advertise.models.JOINABLE.toString()) ||
+            getValue().equals(Advertise.models.LOCALLY.toString())
+    );
   }
 }
