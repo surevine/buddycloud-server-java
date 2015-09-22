@@ -17,6 +17,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.xmpp.packet.IQ;
+import org.xmpp.packet.JID;
 import org.xmpp.packet.Packet;
 import org.xmpp.packet.PacketError;
 
@@ -50,7 +51,7 @@ public class DiscoItemsGetTest extends IQTestHandler {
         nodes.add("/user/topic@topics.server1.com/posts");
         nodes.add("/user/user2@server1.com/posts");
         
-        Mockito.when(channelManager.getLocalNodesList()).thenReturn(nodes);
+        Mockito.when(channelManager.getLocalNodesList(Mockito.any(JID.class))).thenReturn(nodes);
         
         discoItems.process(request);
         
@@ -69,25 +70,8 @@ public class DiscoItemsGetTest extends IQTestHandler {
     }
     
     @Test
-    public void testOnlyReturnsLocalNodes() throws Exception {
-        ArrayList<String> nodes = new ArrayList<String>();
-        nodes.add("/user/user1@server1.com/posts");
-        nodes.add("/user/topic@topics.server1.com/posts");
-        nodes.add("/user/user2@server1.com/posts");
-        
-        Mockito.when(channelManager.getNodeList()).thenReturn(nodes);
-        
-        discoItems.process(request);
-        
-        Assert.assertEquals(1, queue.size());
-        Packet iq = queue.poll();
-        List<Element> items = iq.getElement().element("query").elements("item");
-        Assert.assertEquals(0, items.size());
-    }
-    
-    @Test
     public void testReturnsErrorIfDataStoreException() throws Exception {
-        Mockito.when(channelManager.getLocalNodesList()).thenThrow(new NodeStoreException());
+        Mockito.when(channelManager.getLocalNodesList(Mockito.any(JID.class))).thenThrow(new NodeStoreException());
         
         discoItems.process(request);
         Packet response = queue.poll();

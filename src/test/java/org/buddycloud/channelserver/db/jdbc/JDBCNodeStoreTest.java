@@ -671,29 +671,6 @@ public class JDBCNodeStoreTest extends JDBCNodeStoreAbstract {
     }
 
     @Test
-    public void testGetNodeListReturnsExpectedNodes() throws Exception {
-        dbTester.loadData("node_1");
-        dbTester.loadData("node_2");
-        dbTester.loadData("advertise_nodes");
-
-        ArrayList<String> nodeList = store.getNodeList();
-
-        assertEquals(6, nodeList.size());
-        boolean foundOne = false;
-        boolean foundTwo = false;
-
-        for (String nodeName : nodeList) {
-          if (nodeName.equals("/user/advertised@server1/posts")) {
-            foundOne = true;
-          } else if (nodeName.equals("/user/advertised@server2/posts")) {
-            foundTwo = true;
-          }
-        }
-
-        assertTrue(foundOne && foundTwo);
-    }
-
-    @Test
     public void testPurgeNodeItemsDeletesNodeItems() throws Exception {
 
         dbTester.loadData("node_1");
