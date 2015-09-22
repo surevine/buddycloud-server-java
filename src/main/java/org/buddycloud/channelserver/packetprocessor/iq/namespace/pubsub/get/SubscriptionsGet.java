@@ -150,7 +150,7 @@ public class SubscriptionsGet extends PubSubElementProcessorAbstract {
             subscription.addAttribute(XMLConstants.NODE_ATTR, ns.getNodeId())
                     .addAttribute(XMLConstants.SUBSCRIPTION_ELEM, ns.getSubscription().toString())
                     .addAttribute(XMLConstants.JID_ATTR, ns.getUser().toBareJID());
-            if (null != ns.getInvitedBy() && isOwnerModerator()) {
+            if (null != ns.getInvitedBy()) {
                 subscription.addAttribute(XMLConstants.INVITED_BY_ATTR, ns.getInvitedBy().toBareJID());
 
             }
