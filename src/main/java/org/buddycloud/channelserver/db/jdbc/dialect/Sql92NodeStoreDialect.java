@@ -169,6 +169,9 @@ public class Sql92NodeStoreDialect implements NodeStoreSQLDialect {
 
     private static final String SELECT_REMOTE_NODES =
             "SELECT \"nodes\".\"node\", \"config\".\"value\" AS \"value\" " +
+            "LEFT JOIN \"node_config\" AS \"config\" " +
+            "ON \"config\".\"node_id\" = \"nodes\".\"node_id\" AND " +
+            "\"config\".\"key\" = 'buddycloud#advertise_node' " +
             "FROM \"nodes\" " +
             "WHERE \"nodes\".\"node\" !~ ?";
 
