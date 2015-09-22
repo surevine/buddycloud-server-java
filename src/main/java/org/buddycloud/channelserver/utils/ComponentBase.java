@@ -13,23 +13,23 @@ public class ComponentBase {
   protected String domain;
   protected String password;
   protected Component engine;
-  
+
   private static final Logger LOGGER = Logger.getLogger(ComponentBase.class);
-  
+
   protected void initialize(final Configuration configuration, final String domain) {
     this.domain = domain;
     hostname = configuration.getXmppHost();
     socket = Integer.parseInt(configuration.getComponentPort());
     password = configuration.getProperty("xmpp.secretkey");
   }
-  
+
   public boolean run() throws ComponentException {
     try {
       ExternalComponentManager manager = new ExternalComponentManager(hostname, socket);
       manager.setDefaultSecretKey(password);
       manager.addComponent(domain, engine);
     } catch (ComponentException e) {
-      LOGGER.error(e.getMessage());
+      LOGGER.error(e.getMessage(), e);
       return false;
     }
     return true;
