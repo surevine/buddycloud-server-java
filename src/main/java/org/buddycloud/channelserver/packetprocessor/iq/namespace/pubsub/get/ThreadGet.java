@@ -3,7 +3,7 @@ package org.buddycloud.channelserver.packetprocessor.iq.namespace.pubsub.get;
 import java.io.StringReader;
 import java.util.concurrent.BlockingQueue;
 
-import com.surevine.spiffing.Label;
+import com.surevine.spiffing.*;
 import org.apache.log4j.Logger;
 import org.buddycloud.channelserver.Configuration;
 import org.buddycloud.channelserver.channel.ChannelManager;
@@ -163,6 +163,8 @@ public class ThreadGet extends PubSubElementProcessorAbstract {
                 }
             } catch (DocumentException e) {
                 LOGGER.error("Error parsing a node entry, ignoring. " + item.getId());
+            } catch (SIOException e) {
+                LOGGER.error("Error handling item label, " + item.getId() + "discarding.", e);
             }
         }
     }

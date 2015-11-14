@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
 import com.surevine.spiffing.Label;
+import com.surevine.spiffing.SIOException;
 import org.apache.log4j.Logger;
 import org.buddycloud.channelserver.Configuration;
 import org.buddycloud.channelserver.channel.ChannelManager;
@@ -104,28 +105,32 @@ public class NodeThreadsGet extends PubSubElementProcessorAbstract {
             threadEl.addAttribute(XMLConstants.UPDATED_ATTR, Conf.formatDate(nodeThread.getUpdated()));
             ResultSet<NodeItem> items = nodeThread.getItems();
             for (NodeItem item : items) {
-                Element entry = xmlReader.read(new StringReader(item.getPayload())).getRootElement();
-                Element itemElement = threadEl.addElement(XMLConstants.ITEM_ELEM);
-                itemElement.addAttribute(XMLConstants.ID_ATTR, item.getId());
-                itemElement.add(entry);
-                // Label
-                LOGGER.info("Item has label of " + item.getLabel());
-                Label label = new Label(item.getLabel());
-                if (label != null) {
-                    Element seclabel = itemElement.addElement("securitylabel", "urn:xmpp:sec-label:0");
-                    Element marking = seclabel.addElement("displaymarking");
-                    marking.setText(label.displayMarking());
-                    String fg = label.fgColour();
-                    if (fg != null) {
-                        marking.addAttribute("fgcolor", fg);
+                try {
+                    Element entry = xmlReader.read(new StringReader(item.getPayload())).getRootElement();
+                    Element itemElement = threadEl.addElement(XMLConstants.ITEM_ELEM);
+                    itemElement.addAttribute(XMLConstants.ID_ATTR, item.getId());
+                    itemElement.add(entry);
+                    // Label
+                    LOGGER.info("Item has label of " + item.getLabel());
+                    Label label = new Label(item.getLabel());
+                    if (label != null) {
+                        Element seclabel = itemElement.addElement("securitylabel", "urn:xmpp:sec-label:0");
+                        Element marking = seclabel.addElement("displaymarking");
+                        marking.setText(label.displayMarking());
+                        String fg = label.fgColour();
+                        if (fg != null) {
+                            marking.addAttribute("fgcolor", fg);
+                        }
+                        String bg = label.bgColour();
+                        if (bg != null) {
+                            marking.addAttribute("bgcolor", bg);
+                        }
+                        Element labelwrap = seclabel.addElement("label");
+                        Element ess = labelwrap.addElement("esssecuritylabel", "urnq:xmpp:sec-label:ess:0");
+                        ess.setText(label.toESSBase64());
                     }
-                    String bg = label.bgColour();
-                    if (bg != null) {
-                        marking.addAttribute("bgcolor", bg);
-                    }
-                    Element labelwrap = seclabel.addElement("label");
-                    Element ess = labelwrap.addElement("esssecuritylabel", "urnq:xmpp:sec-label:ess:0");
-                    ess.setText(label.toESSBase64());
+                } catch (SIOException e) {
+                    LOGGER.error("Error handling item label, " + item.getId() + "discarding.", e);
                 }
             }
         }
