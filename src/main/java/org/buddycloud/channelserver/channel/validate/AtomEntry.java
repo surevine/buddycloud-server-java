@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 
+import com.surevine.spiffing.Label;
 import org.apache.log4j.Logger;
 import org.buddycloud.channelserver.channel.ChannelManager;
 import org.buddycloud.channelserver.channel.Conf;
@@ -74,6 +75,8 @@ public class AtomEntry implements PayloadValidator {
     private Element geoloc;
     private String globalItemID;
 
+    private Label sio_label;
+
     public AtomEntry() {
 
     }
@@ -86,6 +89,14 @@ public class AtomEntry implements PayloadValidator {
     public void setPayload(Element item) {
         if (null != item) {
             this.entry = item.element("entry");
+            Element xep258 = item.element("securitylabel");
+            if (null != xep258) {
+                Element label = xep258.element("label");
+                if (null != label) {
+                    Element ess = label.element("esssecuritylabel");
+                    this.sio_label = new Label(ess.getTextTrim());
+                }
+            }
         }
     }
 
@@ -169,6 +180,13 @@ public class AtomEntry implements PayloadValidator {
         Element media = this.entry.element(XMLConstants.MEDIA_ELEM);
         if (null != media) {
             this.media = media;
+        }
+
+        // SIO label validation.
+        if (this.sio_label != null) {
+            if (!this.sio_label.valid()) {
+                LOGGER.warn("Invalid label supplied");
+            }
         }
 
         return true;
@@ -256,6 +274,11 @@ public class AtomEntry implements PayloadValidator {
         activityObject.addElement("activity:object-type").setText(postType);
 
         return entry;
+    }
+
+    @Override
+    public Label getLabel() {
+        return this.sio_label;
     }
 
     @Override

@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.concurrent.BlockingQueue;
 
+import com.surevine.spiffing.Label;
 import org.apache.log4j.Logger;
 import org.buddycloud.channelserver.Configuration;
 import org.buddycloud.channelserver.channel.ChannelManager;
@@ -34,6 +35,7 @@ public class Publish extends PubSubElementProcessorAbstract {
     private static final Logger LOGGER = Logger.getLogger(Publish.class);
 
     private Element entry;
+    private Label label;
     private JID publishersJID;
     private Element item;
 
@@ -116,7 +118,13 @@ public class Publish extends PubSubElementProcessorAbstract {
     private void saveNodeItem() throws NodeStoreException {
         // Let's store the new item.
         entry = validator.getPayload();
-        channelManager.addNodeItem(new NodeItemImpl(node, this.validator.getLocalItemId(), new Date(), entry.asXML(), this.validator.getInReplyTo()));
+        label = validator.getLabel();
+        String labelstr = null;
+        if (label != null) {
+            labelstr = label.toESSBase64();
+        }
+        channelManager.addNodeItem(new NodeItemImpl(node, this.validator.getLocalItemId(), new Date(), entry.asXML(),
+                this.validator.getInReplyTo(), labelstr));
     }
 
     public void setEntryValidator(PayloadValidator validator) {
@@ -251,6 +259,21 @@ public class Publish extends PubSubElementProcessorAbstract {
         Element i = items.addElement("item");
         i.addAttribute("id", validator.getGlobalItemId());
         i.add(entry.createCopy());
+        if (label != null) {
+            Element seclabel = msg.addChildElement("securitylabel", "urn:xmpp:sec-label:0");
+            Element marking = seclabel.addElement("displaymarking");
+            marking.setText(label.displayMarking());
+            String fg = label.fgColour();
+            if (fg != null) {
+                marking.addAttribute("fgcolor", fg);
+            }
+            String bg = label.bgColour();
+            if (bg != null) {
+                marking.addAttribute("bgcolor", bg);
+            }
+            Element ess = seclabel.addElement("esssecuritylabel", "urn:xmpp:sec-label:ess:0");
+            ess.setText(label.toESSBase64());
+        }
 
         ResultSet<NodeSubscription> cur = channelManager.getNodeSubscriptionListeners(node);
 

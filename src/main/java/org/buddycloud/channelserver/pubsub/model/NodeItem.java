@@ -40,4 +40,9 @@ public interface NodeItem extends Result {
      * Retrieves the datestamp when the record was first published
      */
     Date getCreated();
+
+    /**
+     * Retrieves the string encoding of the label
+     */
+    String getLabel();
 }

@@ -75,6 +75,8 @@ public class Configuration extends Properties {
 
   public static final String COMPONENT_STARTUP_DELAY = "component.startup.delay";
 
+  public static final String MAIN_POLICY = "spiffing.policy";
+
   private static Configuration instance = null;
 
   private Collection<JID> adminUsers = new ArrayList<JID>();

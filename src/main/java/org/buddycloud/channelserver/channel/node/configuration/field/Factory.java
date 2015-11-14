@@ -46,6 +46,10 @@ public class Factory {
             Ephemeral field = new Ephemeral();
             setValue(field, value);
             return field;
+        } else if (type.equals(SIOLabel.FIELD_NAME)) {
+            SIOLabel field = new SIOLabel();
+            setValue(field, value);
+            return field;
         } else {
             Generic field = new Generic();
             field.setName(type);

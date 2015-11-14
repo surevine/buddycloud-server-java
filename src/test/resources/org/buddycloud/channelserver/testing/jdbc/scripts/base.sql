@@ -14,6 +14,7 @@ CREATE TABLE "items" ("node_id" INTEGER NOT NULL REFERENCES "nodes" ("node_id") 
 		    "xml" TEXT,
 		    "in_reply_to" TEXT,
             "created" TIMESTAMP DEFAULT NULL,
+            "label" TEXT,
             "thread_id" INTEGER NOT NULL REFERENCES "threads",
 		    PRIMARY KEY ("node_id", "id"));
 CREATE INDEX "items_updated" ON "items" ("updated");

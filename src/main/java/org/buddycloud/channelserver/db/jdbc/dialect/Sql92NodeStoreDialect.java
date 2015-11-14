@@ -71,23 +71,23 @@ public class Sql92NodeStoreDialect implements NodeStoreSQLDialect {
 
     private static final String NODE_EXISTS = "SELECT \"node\" FROM \"nodes\" WHERE \"node\" = ?";
 
-    private static final String SELECT_SINGLE_ITEM = "SELECT \"node\", \"id\", \"updated\", \"xml\", \"in_reply_to\", \"created\""
+    private static final String SELECT_SINGLE_ITEM = "SELECT \"node\", \"id\", \"updated\", \"xml\", \"in_reply_to\", \"label\", \"created\""
             + " FROM \"items\" JOIN \"nodes\" ON \"items\".\"node_id\"=\"nodes\".\"node_id\" "
             + "WHERE \"node\" = ? AND \"id\" = ?";
 
-    private static final String SELECT_ITEMS_FOR_NODE = "SELECT \"node\", \"id\", \"updated\", \"xml\", \"in_reply_to\", \"created\" "
+    private static final String SELECT_ITEMS_FOR_NODE = "SELECT \"node\", \"id\", \"updated\", \"xml\", \"in_reply_to\", \"label\", \"created\" "
             + "FROM \"items\" "
             + "JOIN \"nodes\" ON \"nodes\".\"node_id\" = \"items\".\"node_id\" "
             + "WHERE \"node\" = ? %parentOnly% ORDER BY \"updated\" DESC, \"id\" ASC";
 
-    private static final String SELECT_ITEMS_FOR_NODE_BEFORE_DATE = "SELECT \"node\", \"id\", \"updated\", \"xml\", \"in_reply_to\", \"created\""
+    private static final String SELECT_ITEMS_FOR_NODE_BEFORE_DATE = "SELECT \"node\", \"id\", \"updated\", \"xml\", \"in_reply_to\", \"label\", \"created\""
             + " FROM \"items\" "
             + "JOIN \"nodes\" ON \"nodes\".\"node_id\" = \"items\".\"node_id\" "
             + "WHERE \"node\" = ? AND ( \"updated\" < ? OR ( \"updated\" = ? AND \"id\" < ? ) ) %parentOnly%"
             + " ORDER BY \"updated\" DESC, \"id\" ASC";
 
     private static final String SELECT_ITEMS_FOR_USER_BETWEEN_DATES = ""
-            + "SELECT \"node\", \"id\", \"items\".\"updated\", \"xml\", \"in_reply_to\", \"created\""
+            + "SELECT \"node\", \"id\", \"items\".\"updated\", \"xml\", \"in_reply_to\", \"label\", \"created\""
             + " FROM \"items\" "
             + "JOIN \"nodes\" ON \"nodes\".\"node_id\" = \"items\".\"node_id\" "
             + "JOIN \"subscriptions\" ON \"subscriptions\".\"node_id\" = \"nodes\".\"node_id\""
@@ -99,7 +99,7 @@ public class Sql92NodeStoreDialect implements NodeStoreSQLDialect {
             + "AND \"affiliations\".\"affiliation\" != 'outcast' "
             + "ORDER BY \"items\".\"updated\" ASC";
 
-    private static final String SELECT_RECENT_ITEM_PARTS = "" + "(SELECT \"id\", \"node\", \"xml\", \"updated\", \"in_reply_to\", \"created\" "
+    private static final String SELECT_RECENT_ITEM_PARTS = "" + "(SELECT \"id\", \"node\", \"xml\", \"updated\", \"in_reply_to\", \"label\", \"created\" "
             + "FROM \"items\" "
             + "JOIN \"nodes\" ON \"nodes\".\"node_id\" = \"items\".\"node_id\" "
             + "WHERE \"node\" = ? " + "AND \"updated\" > ? " + "%parentOnly% "
@@ -115,7 +115,7 @@ public class Sql92NodeStoreDialect implements NodeStoreSQLDialect {
             + "JOIN \"nodes\" ON \"nodes\".\"node_id\" = \"items\".\"node_id\" "
             + "WHERE \"node\" = ? %parentOnly%";
 
-    private static final String SELECT_ITEM_REPLIES = "" + "SELECT \"id\", \"node\", \"xml\", \"items\".\"updated\", \"in_reply_to\", \"created\" "
+    private static final String SELECT_ITEM_REPLIES = "" + "SELECT \"id\", \"node\", \"xml\", \"items\".\"updated\", \"in_reply_to\", \"label\", \"created\" "
             + "FROM \"items\" "
             + "JOIN \"threads\" ON \"threads\".\"thread_id\" = \"items\".\"thread_id\" "
             + "JOIN \"nodes\" ON \"nodes\".\"node_id\" = \"threads\".\"node_id\" "
@@ -123,7 +123,7 @@ public class Sql92NodeStoreDialect implements NodeStoreSQLDialect {
             + " AND \"in_reply_to\" IS NOT NULL "
             + "AND \"items\".\"updated\" %beforeAfter% ? ORDER BY \"items\".\"updated\" DESC";
 
-    private static final String SELECT_ITEM_THREAD = "" + "SELECT \"id\", \"node\", \"xml\", \"items\".\"updated\", \"in_reply_to\", \"created\" "
+    private static final String SELECT_ITEM_THREAD = "" + "SELECT \"id\", \"node\", \"xml\", \"items\".\"updated\", \"in_reply_to\", \"label\", \"created\" "
             + "FROM \"items\" "
             + "JOIN \"threads\" ON \"threads\".\"thread_id\"=\"items\".\"thread_id\" "
             + "JOIN \"nodes\" on \"nodes\".\"node_id\" = \"threads\".\"node_id\" "
@@ -169,14 +169,14 @@ public class Sql92NodeStoreDialect implements NodeStoreSQLDialect {
 
     private static final String SELECT_REMOTE_NODES =
             "SELECT \"nodes\".\"node\", \"config\".\"value\" AS \"value\" " +
+            "FROM \"nodes\" " +
             "LEFT JOIN \"node_config\" AS \"config\" " +
             "ON \"config\".\"node_id\" = \"nodes\".\"node_id\" AND " +
             "\"config\".\"key\" = 'buddycloud#advertise_node' " +
-            "FROM \"nodes\" " +
             "WHERE \"nodes\".\"node\" !~ ?";
 
     private static final String SELECT_ITEMS_FROM_LOCAL_NODES_BEFORE_DATE =
-            "SELECT \"nodes\".\"node\", \"id\", \"items\".\"updated\", \"xml\", \"in_reply_to\", \"created\" " +
+            "SELECT \"nodes\".\"node\", \"id\", \"items\".\"updated\", \"xml\", \"in_reply_to\", \"label\", \"created\" " +
             "FROM \"items\" " +
             "JOIN \"node_config\" ON \"items\".\"node_id\" = \"node_config\".\"node_id\" " +
             "JOIN \"nodes\" ON \"nodes\".\"node_id\" = \"items\".\"node_id\" " +
@@ -208,13 +208,14 @@ public class Sql92NodeStoreDialect implements NodeStoreSQLDialect {
     private static final String INSERT_THREAD = "INSERT INTO \"threads\" "
             + "(\"node_id\", \"updated\", \"item_id\") "
             + "SELECT \"node_id\", ?, ? FROM \"nodes\" WHERE \"node\" = ?";
-    private static final String INSERT_ITEM = "INSERT INTO \"items\" ( \"node_id\", \"thread_id\", \"id\", \"updated\", \"xml\", \"in_reply_to\", \"created\") "
-            + " SELECT \"nodes\".\"node_id\", \"thread_id\", ?, ?, ?, ?, NOW()"
+    private static final String INSERT_ITEM =
+            "INSERT INTO \"items\" ( \"node_id\", \"thread_id\", \"id\", \"updated\", \"xml\", \"in_reply_to\", \"created\", \"label\") "
+            + " SELECT \"nodes\".\"node_id\", \"thread_id\", ?, ?, ?, ?, NOW(), ?"
             + " FROM \"nodes\" JOIN \"threads\" ON \"nodes\".\"node_id\" = \"threads\".\"node_id\""
             + " WHERE \"threads\".\"item_id\" = ?"
             + " AND \"nodes\".\"node\" = ?";
 
-    private static final String UPDATE_ITEM = "UPDATE \"items\" SET \"updated\" = ?, \"xml\" = ?"
+    private static final String UPDATE_ITEM = "UPDATE \"items\" SET \"updated\" = ?, \"xml\" = ?, \"label\" = ?"
             + " WHERE \"node_id\" = (SELECT \"node_id\" FROM \"nodes\" WHERE \"node\" = ?)"
             + " AND \"id\" = ?";
 
@@ -256,7 +257,7 @@ public class Sql92NodeStoreDialect implements NodeStoreSQLDialect {
 
     private static final String SELECT_NODE_THREADS = "SELECT \"node\", \"id\", "
             + " \"items\".\"updated\", \"xml\", \"in_reply_to\", \"item_id\", "
-            + " \"t\".\"updated\" AS \"thread_updated\", \"created\" FROM \"items\" "
+            + " \"t\".\"updated\" AS \"thread_updated\", \"label\", \"created\" FROM \"items\" "
             + " JOIN ( "
             + "  SELECT \"node\", \"thread_id\", \"item_id\", \"updated\" FROM \"threads\" "
             + "  JOIN \"nodes\" ON \"nodes\".\"node_id\" = \"threads\".\"node_id\" "
@@ -347,7 +348,8 @@ public class Sql92NodeStoreDialect implements NodeStoreSQLDialect {
     private static final String SELECT_ONLINE_RESOURCES = "SELECT \"user\", \"updated\" " + "FROM \"online_users\" " + "WHERE \"user\" LIKE ? "
             + "ORDER BY \"updated\" DESC;";
 
-    private static final String SELECT_USER_FEED_ITEMS = "" + "SELECT \"node\", \"id\", \"items\".\"updated\", \"xml\", \"in_reply_to\" " + "FROM \"items\" "
+    private static final String SELECT_USER_FEED_ITEMS = "" + "SELECT \"node\", \"id\", \"items\".\"updated\", \"xml\", \"in_reply_to\", \"label\" "
+            + "FROM \"items\" "
             + "JOIN \"nodes\" ON \"nodes\".\"node_id\" = \"items\".\"node_id\" "
             + "JOIN \"subscriptions\" ON \"subscriptions\".\"node_id\" = \"nodes\".\"node_id\" "
             + "WHERE  \"subscription\" = 'subscribed' AND \"user\" = ? AND \"items\".\"updated\" > ? "

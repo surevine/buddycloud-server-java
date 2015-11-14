@@ -12,22 +12,28 @@ public class NodeItemImpl implements NodeItem {
     private final Date updated;
     private final Date created;
     private final String inReplyTo;
+    private final String labelstr;
 
     public NodeItemImpl(final String nodeId, final String id, final Date updated, final String payload) {
-        this(nodeId, id, updated, payload, null, null);
+        this(nodeId, id, updated, payload, null, null, null);
     }
 
     public NodeItemImpl(final String nodeId, final String id, final Date updated, final String payload, final String inReplyTo) {
-        this(nodeId, id, updated, payload, inReplyTo, null);
+        this(nodeId, id, updated, payload, inReplyTo, null, null);
     }
 
-    public NodeItemImpl(final String nodeId, final String id, final Date updated, final String payload, final String inReplyTo, final Date created) {
+    public NodeItemImpl(final String nodeId, final String id, final Date updated, final String payload, final String inReplyTo, final String labelstr) {
+        this(nodeId, id, updated, payload, inReplyTo, labelstr, null);
+    }
+    public NodeItemImpl(final String nodeId, final String id, final Date updated, final String payload,
+                        final String inReplyTo, final String labelstr, final Date created) {
         this.nodeId = nodeId;
         this.id = id;
         this.updated = updated;
         this.created = created;
         this.payload = payload;
         this.inReplyTo = inReplyTo;
+        this.labelstr = labelstr;
     }
 
     @Override
@@ -107,5 +113,10 @@ public class NodeItemImpl implements NodeItem {
     @Override
     public Date getCreated() {
         return created;
+    }
+
+    @Override
+    public String getLabel() {
+        return labelstr;
     }
 }

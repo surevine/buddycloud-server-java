@@ -1,5 +1,7 @@
 package org.buddycloud.channelserver;
 
+import com.surevine.spiffing.Site;
+import com.surevine.spiffing.Spif;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.buddycloud.channelserver.db.exception.NodeStoreException;
@@ -26,6 +28,13 @@ public class Main {
     LOGGER.info("Starting Buddycloud channel mockup version...");
 
     configuration = Configuration.getInstance();
+
+    Site site = new Site();
+    String spif = configuration.getProperty(Configuration.MAIN_POLICY);
+    if (spif != null) {
+      Spif policy = site.load(spif);
+      LOGGER.info("Loaded site security policy: " + policy.name());
+    }
 
     componentConnectionDelay = Long.parseLong(
         configuration.getProperty(Configuration.COMPONENT_STARTUP_DELAY, "5000")

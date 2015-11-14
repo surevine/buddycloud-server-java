@@ -32,6 +32,7 @@ import org.xmpp.packet.JID;
 public class AtomEntryTest extends TestHandler {
 
     private static final String ISO_8601_REGEX = "[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}(Z|[+-][0-9]{2}:[0-9]{2})";
+    private static final String DEFAULT_LABEL = null;
 
     private AtomEntry validator;
 
@@ -289,7 +290,7 @@ public class AtomEntryTest extends TestHandler {
     @Test
     public void canNotReplyToAReply() throws Exception {
 
-        NodeItem nodeItem = new NodeItemImpl(node, "2", new Date(), "<entry/>", "1", new Date());
+        NodeItem nodeItem = new NodeItemImpl(node, "2", new Date(), "<entry/>", "1", DEFAULT_LABEL, new Date());
 
         Mockito.when(channelManager.getNodeItem(Mockito.eq(node), Mockito.anyString())).thenReturn(nodeItem);
 

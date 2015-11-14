@@ -577,7 +577,8 @@ public class JDBCNodeStore implements NodeStore {
             LinkedList<NodeItem> results = new LinkedList<NodeItem>();
 
             while (rs.next()) {
-                results.push(new NodeItemImpl(rs.getString(1), rs.getString(2), rs.getTimestamp(3), rs.getString(4), rs.getString(5), rs.getTimestamp(6)));
+                results.push(new NodeItemImpl(rs.getString(1), rs.getString(2), rs.getTimestamp(3), rs.getString(4),
+                        rs.getString(5), rs.getString(6), rs.getTimestamp(7)));
             }
 
             return new ClosableIteratorImpl<NodeItem>(results.iterator());
@@ -861,7 +862,8 @@ public class JDBCNodeStore implements NodeStore {
                 return new ResultSetIterator<NodeItem>(rs, new ResultSetIterator.RowConverter<NodeItem>() {
                     @Override
                     public NodeItem convertRow(java.sql.ResultSet rs) throws SQLException {
-                        return new NodeItemImpl(rs.getString(1), rs.getString(2), rs.getTimestamp(3), rs.getString(4), rs.getString(5), rs.getTimestamp(6));
+                        return new NodeItemImpl(rs.getString(1), rs.getString(2), rs.getTimestamp(3), rs.getString(4),
+                                rs.getString(5), rs.getString(6), rs.getTimestamp(7));
                     }
                 });
             } else {
@@ -878,7 +880,8 @@ public class JDBCNodeStore implements NodeStore {
                 return new ResultSetIterator<NodeItem>(rs, new ResultSetIterator.RowConverter<NodeItem>() {
                     @Override
                     public NodeItem convertRow(java.sql.ResultSet rs) throws SQLException {
-                        return new NodeItemImpl(rs.getString(1), rs.getString(2), rs.getTimestamp(3), rs.getString(4), rs.getString(5), rs.getTimestamp(6));
+                        return new NodeItemImpl(rs.getString(1), rs.getString(2), rs.getTimestamp(3), rs.getString(4),
+                                rs.getString(5), rs.getString(6), rs.getTimestamp(7));
                     }
                 });
             }
@@ -930,7 +933,7 @@ public class JDBCNodeStore implements NodeStore {
             return new ResultSetIterator<NodeItem>(rs, new ResultSetIterator.RowConverter<NodeItem>() {
                 @Override
                 public NodeItem convertRow(java.sql.ResultSet rs) throws SQLException {
-                    return new NodeItemImpl(rs.getString(1), rs.getString(2), rs.getTimestamp(3), rs.getString(4), rs.getString(5));
+                    return new NodeItemImpl(rs.getString(1), rs.getString(2), rs.getTimestamp(3), rs.getString(4), rs.getString(5), rs.getString(6));
                 }
             });
 
@@ -1121,7 +1124,9 @@ public class JDBCNodeStore implements NodeStore {
                          // statement
             ArrayList<NodeItem> results = new ArrayList<NodeItem>();
             while (rs.next()) {
-                results.add(new NodeItemImpl(rs.getString(2), rs.getString(1), rs.getTimestamp(4), rs.getString(3), rs.getString(5), rs.getTimestamp(6)));
+                LOGGER.info("Raw item has labelstr " + rs.getString(6));
+                results.add(new NodeItemImpl(rs.getString(2), rs.getString(1), rs.getTimestamp(4), rs.getString(3),
+                        rs.getString(5), rs.getString(6), rs.getTimestamp(7)));
             }
             return new ClosableIteratorImpl<NodeItem>(results.iterator());
         } catch (SQLException e) {
@@ -1171,7 +1176,8 @@ public class JDBCNodeStore implements NodeStore {
             LinkedList<NodeItem> results = new LinkedList<NodeItem>();
 
             while (rs.next()) {
-                results.push(new NodeItemImpl(rs.getString(2), rs.getString(1), rs.getTimestamp(4), rs.getString(3), rs.getString(5), rs.getTimestamp(6)));
+                results.push(new NodeItemImpl(rs.getString(2), rs.getString(1), rs.getTimestamp(4), rs.getString(3),
+                        rs.getString(5), rs.getString(6), rs.getTimestamp(7)));
             }
 
             return new ClosableIteratorImpl<NodeItem>(results.iterator());
@@ -1233,7 +1239,8 @@ public class JDBCNodeStore implements NodeStore {
             LinkedList<NodeItem> results = new LinkedList<NodeItem>();
 
             while (rs.next()) {
-                results.push(new NodeItemImpl(rs.getString(2), rs.getString(1), rs.getTimestamp(4), rs.getString(3), rs.getString(5), rs.getTimestamp(6)));
+                results.push(new NodeItemImpl(rs.getString(2), rs.getString(1), rs.getTimestamp(4), rs.getString(3),
+                        rs.getString(5), rs.getString(6), rs.getTimestamp(7)));
             }
 
             return new ClosableIteratorImpl<NodeItem>(results.iterator());
@@ -1285,7 +1292,8 @@ public class JDBCNodeStore implements NodeStore {
             LinkedList<NodeItem> results = new LinkedList<NodeItem>();
 
             while (rs.next()) {
-                results.push(new NodeItemImpl(rs.getString(1), rs.getString(2), rs.getTimestamp(3), rs.getString(4), rs.getString(5), rs.getTimestamp(6)));
+                results.push(new NodeItemImpl(rs.getString(1), rs.getString(2), rs.getTimestamp(3), rs.getString(4),
+                        rs.getString(5), rs.getString(6), rs.getTimestamp(7)));
             }
 
             return new ClosableIteratorImpl<NodeItem>(results.iterator());
@@ -1344,7 +1352,8 @@ public class JDBCNodeStore implements NodeStore {
             java.sql.ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                return new NodeItemImpl(rs.getString(1), rs.getString(2), rs.getTimestamp(3), rs.getString(4), rs.getString(5), rs.getTimestamp(6));
+                return new NodeItemImpl(rs.getString(1), rs.getString(2), rs.getTimestamp(3), rs.getString(4),
+                        rs.getString(5), rs.getString(6), rs.getTimestamp(7));
             }
             return null;
         } catch (SQLException e) {
@@ -1390,8 +1399,9 @@ public class JDBCNodeStore implements NodeStore {
             stmt.setTimestamp(2, ts);
             stmt.setString(3, item.getPayload());
             stmt.setString(4, item.getInReplyTo());
-            stmt.setString(5, thread_id);
-            stmt.setString(6, item.getNodeId());
+            stmt.setString(5, item.getLabel());
+            stmt.setString(6, thread_id);
+            stmt.setString(7, item.getNodeId());
 
             if (stmt.executeUpdate() != 1) {
               throw new ItemNotFoundException("No row inserted, maybe the thread is missing?");
@@ -1513,7 +1523,8 @@ public class JDBCNodeStore implements NodeStore {
             return new ResultSetIterator<NodeItem>(rs, new ResultSetIterator.RowConverter<NodeItem>() {
                 @Override
                 public NodeItem convertRow(java.sql.ResultSet rs) throws SQLException {
-                    return new NodeItemImpl(rs.getString(1), rs.getString(2), rs.getTimestamp(3), rs.getString(4), rs.getString(5), rs.getTimestamp(6));
+                    return new NodeItemImpl(rs.getString(1), rs.getString(2), rs.getTimestamp(3), rs.getString(4),
+                            rs.getString(5), rs.getString(6), rs.getTimestamp(7));
                 }
             });
         } catch (SQLException e) {
@@ -1596,7 +1607,8 @@ public class JDBCNodeStore implements NodeStore {
             ArrayList<NodeItem> result = new ArrayList<NodeItem>();
             while (rs.next()) {
                 NodeItem nodeItem =
-                        new NodeItemImpl(rs.getString(1), rs.getString(2), rs.getTimestamp(3), rs.getString(4), rs.getString(5), rs.getTimestamp(6));
+                        new NodeItemImpl(rs.getString(1), rs.getString(2), rs.getTimestamp(3), rs.getString(4),
+                                rs.getString(5), rs.getString(6), rs.getTimestamp(7));
                 result.add(nodeItem);
             }
             return new ResultSetImpl<NodeItem>(result);
@@ -1673,7 +1685,8 @@ public class JDBCNodeStore implements NodeStore {
             NodeThreadImpl currentThread = null;
             while (rs.next()) {
                 NodeItem nodeItem =
-                        new NodeItemImpl(rs.getString(1), rs.getString(2), rs.getTimestamp(3), rs.getString(4), rs.getString(5), rs.getTimestamp(8));
+                        new NodeItemImpl(rs.getString(1), rs.getString(2), rs.getTimestamp(3), rs.getString(4),
+                                rs.getString(5), rs.getString(7), rs.getTimestamp(9));
                 String threadId = rs.getString(6);
                 Date threadUpdated = rs.getTimestamp(7);
                 if (currentThread == null || !threadId.equals(currentThread.getId())) {

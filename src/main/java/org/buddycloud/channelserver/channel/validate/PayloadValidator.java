@@ -1,5 +1,6 @@
 package org.buddycloud.channelserver.channel.validate;
 
+import com.surevine.spiffing.Label;
 import net.xeoh.plugins.base.Plugin;
 import net.xeoh.plugins.base.annotations.Capabilities;
 
@@ -23,6 +24,8 @@ public interface PayloadValidator extends Plugin {
     public abstract boolean isValid() throws NodeStoreException;
 
     public abstract Element getPayload();
+
+    public abstract Label getLabel();
 
     public abstract void setUser(JID jid);
 

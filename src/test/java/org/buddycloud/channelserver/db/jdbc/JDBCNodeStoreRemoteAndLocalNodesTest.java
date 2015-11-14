@@ -92,7 +92,7 @@ public class JDBCNodeStoreRemoteAndLocalNodesTest extends JDBCNodeStoreAbstract 
         Assert.assertFalse(remoteNodes.contains("/user/not-advertised@server1/posts"));
         Assert.assertTrue(remoteNodes.contains("/user/advertised@server2/posts"));
         Assert.assertTrue(remoteNodes.contains("/user/undetermined-advertised@server2/posts"));
-        Assert.assertFalse(remoteNodes.contains("/user/not-advertised@server2/posts"));
-        Assert.assertEquals(3, remoteNodes.size());
+        Assert.assertTrue(remoteNodes.contains("/user/not-advertised@server2/posts"));
+        Assert.assertEquals(4, remoteNodes.size());
     }
 }

@@ -4,6 +4,7 @@ import java.io.StringReader;
 import java.util.Date;
 import java.util.concurrent.BlockingQueue;
 
+import com.surevine.spiffing.Label;
 import org.apache.log4j.Logger;
 import org.buddycloud.channelserver.Configuration;
 import org.buddycloud.channelserver.channel.ChannelManager;
@@ -145,6 +146,25 @@ public class RecentItemsGet extends PubSubElementProcessorAbstract {
                 }
                 lastItemId = new GlobalItemIDImpl(null, item.getNodeId(), item.getId());
                 itemElement.add(entry);
+                // Label
+                LOGGER.info("Item has label of " + item.getLabel());
+                Label label = new Label(item.getLabel());
+                if (label != null) {
+                    Element seclabel = itemElement.addElement("securitylabel", "urn:xmpp:sec-label:0");
+                    Element marking = seclabel.addElement("displaymarking");
+                    marking.setText(label.displayMarking());
+                    String fg = label.fgColour();
+                    if (fg != null) {
+                        marking.addAttribute("fgcolor", fg);
+                    }
+                    String bg = label.bgColour();
+                    if (bg != null) {
+                        marking.addAttribute("bgcolor", bg);
+                    }
+                    Element labelwrap = seclabel.addElement("label");
+                    Element ess = labelwrap.addElement("esssecuritylabel", "urnq:xmpp:sec-label:ess:0");
+                    ess.setText(label.toESSBase64());
+                }
             } catch (DocumentException e) {
                 LOGGER.error("Error parsing a node entry, ignoring. " + item.getId());
             }

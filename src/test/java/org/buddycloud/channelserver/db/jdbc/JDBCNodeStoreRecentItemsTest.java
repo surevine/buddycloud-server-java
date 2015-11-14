@@ -18,6 +18,7 @@ import org.buddycloud.channelserver.pubsub.subscription.Subscriptions;
 import org.junit.Test;
 
 public class JDBCNodeStoreRecentItemsTest extends JDBCNodeStoreAbstract {
+    private static final String DEFAULT_LABEL = null;
 
     public JDBCNodeStoreRecentItemsTest() throws SQLException, IOException, ClassNotFoundException {
         dbTester = new DatabaseTester();
@@ -195,13 +196,13 @@ public class JDBCNodeStoreRecentItemsTest extends JDBCNodeStoreAbstract {
         store.addRemoteNode(TEST_SERVER1_NODE2_ID);
         store.addUserSubscription(new NodeSubscriptionImpl(TEST_SERVER1_NODE2_ID, TEST_SERVER1_USER1_JID, Subscriptions.subscribed, null));
 
-        NodeItem nodeItem1 = new NodeItemImpl(TEST_SERVER1_NODE1_ID, "12-node1", new Date(), "payload", null, new Date());
+        NodeItem nodeItem1 = new NodeItemImpl(TEST_SERVER1_NODE1_ID, "12-node1", new Date(), "payload", null, DEFAULT_LABEL, new Date());
         store.addNodeItem(nodeItem1);
         Thread.sleep(1);
-        NodeItem nodeItem2 = new NodeItemImpl(TEST_SERVER1_NODE2_ID, "123-node2", new Date(), "payload2", "123", new Date());
+        NodeItem nodeItem2 = new NodeItemImpl(TEST_SERVER1_NODE2_ID, "123-node2", new Date(), "payload2", "123", DEFAULT_LABEL, new Date());
         store.addNodeItem(nodeItem2);
         Thread.sleep(1);
-        NodeItem nodeItem3 = new NodeItemImpl(TEST_SERVER1_NODE2_ID, "124-node1", new Date(), "payload3", null, new Date());
+        NodeItem nodeItem3 = new NodeItemImpl(TEST_SERVER1_NODE2_ID, "124-node1", new Date(), "payload3", null, DEFAULT_LABEL, new Date());
         store.addNodeItem(nodeItem3);
         Thread.sleep(20);
 
@@ -223,13 +224,13 @@ public class JDBCNodeStoreRecentItemsTest extends JDBCNodeStoreAbstract {
         store.purgeNodeItems(TEST_SERVER1_NODE1_ID);
         store.addUserSubscription(new NodeSubscriptionImpl(TEST_SERVER1_NODE2_ID, TEST_SERVER1_USER1_JID, Subscriptions.subscribed, null));
 
-        NodeItem nodeItem1 = new NodeItemImpl(TEST_SERVER1_NODE1_ID, "12-node1", new Date(), "payload", null, new Date());
+        NodeItem nodeItem1 = new NodeItemImpl(TEST_SERVER1_NODE1_ID, "12-node1", new Date(), "payload", null, DEFAULT_LABEL, new Date());
         store.addNodeItem(nodeItem1);
         Thread.sleep(1);
-        NodeItem nodeItem2 = new NodeItemImpl(TEST_SERVER1_NODE2_ID, "123-node2", new Date(), "payload2", "123", new Date());
+        NodeItem nodeItem2 = new NodeItemImpl(TEST_SERVER1_NODE2_ID, "123-node2", new Date(), "payload2", "123", DEFAULT_LABEL, new Date());
         store.addNodeItem(nodeItem2);
         Thread.sleep(1);
-        NodeItem nodeItem3 = new NodeItemImpl(TEST_SERVER1_NODE2_ID, "124-node1", new Date(), "payload3", null, new Date());
+        NodeItem nodeItem3 = new NodeItemImpl(TEST_SERVER1_NODE2_ID, "124-node1", new Date(), "payload3", null, DEFAULT_LABEL, new Date());
         store.addNodeItem(nodeItem3);
         Thread.sleep(20);
 
