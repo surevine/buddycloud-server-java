@@ -5,8 +5,10 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
 import com.surevine.spiffing.Label;
+import com.surevine.spiffing.SIOException;
 import org.apache.log4j.Logger;
 import org.buddycloud.channelserver.Configuration;
+import org.buddycloud.channelserver.Main;
 import org.buddycloud.channelserver.channel.ChannelManager;
 import org.buddycloud.channelserver.channel.node.configuration.field.AccessModel;
 import org.buddycloud.channelserver.db.CloseableIterator;
@@ -308,28 +310,12 @@ public class NodeItemsGet extends PubSubElementProcessorAbstract {
             Element item = parent.addElement(XMLConstants.ITEM_ELEM);
             item.addAttribute("id", nodeItem.getId());
             item.add(entry);
-            // Label
-            LOGGER.info("Item has label of " + nodeItem.getLabel());
-            Label label = new Label(nodeItem.getLabel());
-            if (label != null) {
-                Element seclabel = item.addElement("securitylabel", "urn:xmpp:sec-label:0");
-                Element marking = seclabel.addElement("displaymarking");
-                marking.setText(label.displayMarking());
-                String fg = label.fgColour();
-                if (fg != null) {
-                    marking.addAttribute("fgcolor", fg);
-                }
-                String bg = label.bgColour();
-                if (bg != null) {
-                    marking.addAttribute("bgcolor", bg);
-                }
-                Element labelwrap = seclabel.addElement("label");
-                Element ess = labelwrap.addElement("esssecuritylabel", "urnq:xmpp:sec-label:ess:0");
-                ess.setText(label.toESSBase64());
-            }
+            Main.getClearanceManager().addLabel(item, nodeItem.getLabel(), actor);
 
         } catch (DocumentException e) {
             LOGGER.error("Error parsing a node entry, ignoring. " + nodeItem);
+        } catch (SIOException e) {
+            LOGGER.error("SIOError parsing a node entry, ignoring. " + nodeItem, e);
         }
     }
 

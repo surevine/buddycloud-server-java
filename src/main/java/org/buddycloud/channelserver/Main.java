@@ -1,5 +1,6 @@
 package org.buddycloud.channelserver;
 
+import com.surevine.spiffing.SIOException;
 import com.surevine.spiffing.Site;
 import com.surevine.spiffing.Spif;
 import org.apache.log4j.Logger;
@@ -7,6 +8,8 @@ import org.apache.log4j.PropertyConfigurator;
 import org.buddycloud.channelserver.db.exception.NodeStoreException;
 import org.logicalcobwebs.proxool.ProxoolException;
 import org.xmpp.component.ComponentException;
+
+import java.util.ArrayList;
 
 public class Main {
 
@@ -18,6 +21,7 @@ public class Main {
   private static long componentConnectionDelay;
   private static TopicsComponent topicComponent;
   private static XmppComponent channelComponent;
+  private static ClearanceManager clearanceManager;
 
   public static void main(String[] args) throws Exception {
     startComponents();
@@ -29,16 +33,11 @@ public class Main {
 
     configuration = Configuration.getInstance();
 
-    Site site = new Site();
-    String spif = configuration.getProperty(Configuration.MAIN_POLICY);
-    if (spif != null) {
-      Spif policy = site.load(spif);
-      LOGGER.info("Loaded site security policy: " + policy.name());
-    }
-
     componentConnectionDelay = Long.parseLong(
-        configuration.getProperty(Configuration.COMPONENT_STARTUP_DELAY, "5000")
+            configuration.getProperty(Configuration.COMPONENT_STARTUP_DELAY, "5000")
     );
+
+    getClearanceManager();
         
     LOGGER.info("Connecting to '" + configuration.getXmppHost() + ":"
         + configuration.getComponentPort() + "' and trying to claim address '"
@@ -74,10 +73,7 @@ public class Main {
     return topicComponent.run();
   }
 
-  private static TopicsComponent getTopicComponent(String topicDomain) {
-    if (null == topicComponent) {
-        topicComponent = new TopicsComponent(configuration, topicDomain);
-    }
+  public static TopicsComponent getTopicComponent() {
     return topicComponent;
   }
 
@@ -96,6 +92,13 @@ public class Main {
         channelComponent = new XmppComponent(configuration, channelDomain);
     }
     return channelComponent;
+  }
+
+  public static ClearanceManager getClearanceManager() throws SIOException {
+    if (null == clearanceManager) {
+      clearanceManager = new ClearanceManager(configuration);
+    }
+    return clearanceManager;
   }
   
   public static void setChannelComponent(XmppComponent component) {

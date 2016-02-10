@@ -34,4 +34,8 @@ public class ComponentBase {
     }
     return true;
   }
+
+  public Component getComponent() {
+    return this.engine;
+  }
 }

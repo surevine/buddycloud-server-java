@@ -75,7 +75,7 @@ public class Configuration extends Properties {
 
   public static final String COMPONENT_STARTUP_DELAY = "component.startup.delay";
 
-  public static final String MAIN_POLICY = "spiffing.policy";
+  public static final String SECURITY_POLICY = "spiffing.policy";
 
   private static Configuration instance = null;
 

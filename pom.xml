@@ -164,9 +164,15 @@
 			<version>1.0.2</version>
 		</dependency>
 		<dependency>
-			<groupId>com.surevine</groupId>
-			<artifactId>spiffing</artifactId>
+			<groupId>com.surevine.spiffing</groupId>
+			<artifactId>spiffing-jni</artifactId>
 			<version>1.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.surevine.spiffing</groupId>
+			<artifactId>spiffing-native</artifactId>
+			<version>1.0-SNAPSHOT</version>
+			<type>so</type>
 		</dependency>
 	</dependencies>
 	<repositories>
@@ -251,6 +257,11 @@
 							<goal>shade</goal>
 						</goals>
 						<configuration>
+							<artifactSet>
+								<excludes>
+									<exclude>com.surevine.spiffing:spiffing-native</exclude>
+								</excludes>
+							</artifactSet>
 							<outputFile>${project.build.directory}/${project.build.finalName}-${project.build.withDependencies}.jar</outputFile>
 							<transformers>
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
@@ -266,6 +277,11 @@
 							<goal>shade</goal>
 						</goals>
 						<configuration>
+							<artifactSet>
+								<excludes>
+									<exclude>com.surevine.spiffing:spiffing-native</exclude>
+								</excludes>
+							</artifactSet>
 							<outputFile>${project.build.directory}/${project.artifactId}-${project.build.withDependencies}.jar</outputFile>
 							<transformers>
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">

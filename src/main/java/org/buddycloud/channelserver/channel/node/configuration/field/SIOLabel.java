@@ -1,6 +1,7 @@
 package org.buddycloud.channelserver.channel.node.configuration.field;
 
 import com.surevine.spiffing.Label;
+import com.surevine.spiffing.SIOException;
 
 /**
  * Created by dwd on 09/11/15.
@@ -19,7 +20,18 @@ public class SIOLabel extends Field {
     }
 
     public boolean isValid() {
-        Label label = new Label(this.value);
-        return label.valid();
+        Label label = null;
+        boolean valid = false;
+        try {
+            label = new Label(this.value);
+            valid = label.valid();
+        } catch (SIOException e) {
+            valid = false;
+        } finally {
+            if (label != null) {
+                label.dispose();
+            }
+        }
+        return valid;
     }
 }

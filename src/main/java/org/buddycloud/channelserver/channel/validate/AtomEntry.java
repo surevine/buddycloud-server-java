@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.surevine.spiffing.Label;
+import com.surevine.spiffing.SIOException;
 import org.apache.log4j.Logger;
 import org.buddycloud.channelserver.channel.ChannelManager;
 import org.buddycloud.channelserver.channel.Conf;
@@ -94,7 +95,11 @@ public class AtomEntry implements PayloadValidator {
                 Element label = xep258.element("label");
                 if (null != label) {
                     Element ess = label.element("esssecuritylabel");
-                    this.sio_label = new Label(ess.getTextTrim());
+                    try {
+                        this.sio_label = new Label(ess.getTextTrim());
+                    } catch (SIOException e) {
+                        this.sio_label = null;
+                    }
                 }
             }
         }
@@ -184,8 +189,12 @@ public class AtomEntry implements PayloadValidator {
 
         // SIO label validation.
         if (this.sio_label != null) {
-            if (!this.sio_label.valid()) {
-                LOGGER.warn("Invalid label supplied");
+            try {
+                if (!this.sio_label.valid()) {
+                    LOGGER.warn("Invalid label supplied");
+                }
+            } catch (SIOException e) {
+                LOGGER.warn("Very invalid label supplied");
             }
         }
 

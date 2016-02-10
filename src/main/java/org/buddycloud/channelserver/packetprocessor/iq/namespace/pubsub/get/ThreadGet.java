@@ -6,6 +6,7 @@ import java.util.concurrent.BlockingQueue;
 import com.surevine.spiffing.*;
 import org.apache.log4j.Logger;
 import org.buddycloud.channelserver.Configuration;
+import org.buddycloud.channelserver.Main;
 import org.buddycloud.channelserver.channel.ChannelManager;
 import org.buddycloud.channelserver.channel.node.configuration.field.AccessModel;
 import org.buddycloud.channelserver.db.CloseableIterator;
@@ -122,19 +123,37 @@ public class ThreadGet extends PubSubElementProcessorAbstract {
     }
 
     private void addItems() throws NodeStoreException {
-
-        CloseableIterator<NodeItem> items = channelManager.getNodeItemThread(node, parentId, afterItemId, maxResults);
-        NodeItem item;
-        Element entry;
-        Element itemElement;
         Element itemsElement = pubsub.addElement("items");
         itemsElement.addAttribute("node", node);
 
+        lastItemId = afterItemId;
+
+        LOGGER.debug("START Max Results is " + maxResults + " last item is " + lastItemId);
+
+        do {
+            LOGGER.debug("Max Results is " + maxResults + " last item is " + lastItemId);
+            int newCount = addMoreItems(itemsElement);
+            LOGGER.debug("Returned " + newCount + " items, last item is " + lastItemId);
+            if (newCount < 0) {
+                // None to be fetched; stop here.
+                return;
+            }
+            maxResults -= newCount;
+        } while (maxResults > 0);
+    }
+
+    private int addMoreItems(Element itemsElement) throws NodeStoreException {
+        CloseableIterator<NodeItem> items = channelManager.getNodeItemThread(node, parentId, lastItemId, maxResults);
+        int currentResults = 0;
+        boolean any = false;
+
         while (items.hasNext()) {
-            item = items.next();
+            NodeItem item = items.next();
+            Element itemElement = null;
 
             try {
-                entry = xmlReader.read(new StringReader(item.getPayload())).getRootElement();
+                Element entry = xmlReader.read(new StringReader(item.getPayload())).getRootElement();
+                any = true;
                 itemElement = itemsElement.addElement("item");
                 itemElement.addAttribute("id", item.getId());
                 if (null == firstItemId) {
@@ -142,31 +161,23 @@ public class ThreadGet extends PubSubElementProcessorAbstract {
                 }
                 lastItemId = item.getId();
                 itemElement.add(entry);
-                // Label
-                LOGGER.info("Item has label of " + item.getLabel());
-                Label label = new Label(item.getLabel());
-                if (label != null) {
-                    Element seclabel = itemElement.addElement("securitylabel", "urn:xmpp:sec-label:0");
-                    Element marking = seclabel.addElement("displaymarking");
-                    marking.setText(label.displayMarking());
-                    String fg = label.fgColour();
-                    if (fg != null) {
-                        marking.addAttribute("fgcolor", fg);
-                    }
-                    String bg = label.bgColour();
-                    if (bg != null) {
-                        marking.addAttribute("bgcolor", bg);
-                    }
-                    Element labelwrap = seclabel.addElement("label");
-                    Element ess = labelwrap.addElement("esssecuritylabel", "urnq:xmpp:sec-label:ess:0");
-                    ess.setText(label.toESSBase64());
+                Main.getClearanceManager().addLabel(itemElement, item.getLabel(), actor);
+                ++currentResults;
+                if (currentResults >= maxResults) {
+                    return currentResults;
                 }
             } catch (DocumentException e) {
                 LOGGER.error("Error parsing a node entry, ignoring. " + item.getId());
             } catch (SIOException e) {
                 LOGGER.error("Error handling item label, " + item.getId() + "discarding.", e);
+                itemsElement.remove(itemElement);
             }
         }
+        if (!any) {
+            // assert(currentResults == 0);
+            return -1;
+        }
+        return currentResults;
     }
 
     public AccessModels getNodeAccessModel() {
